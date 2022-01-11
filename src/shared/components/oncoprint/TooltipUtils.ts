@@ -33,13 +33,14 @@ const hotspotsImg = require('../../../rootImages/cancer-hotspots.svg');
 const oncokbImg = require('oncokb-styles/images/oncogenic.svg');
 const customDriverImg = require('../../../rootImages/driver.png');
 const customDriverTiersImg = require('../../../rootImages/driver_tiers.png');
+const passengerImg = require('../../../rootImages/passenger.png');
 
 export const TOOLTIP_DIV_CLASS = 'oncoprint__tooltip';
 
 const tooltipTextElementNaN = 'N/A';
 import './styles.scss';
 import { deriveDisplayTextFromGenericAssayType } from 'pages/resultsView/plots/PlotsTabUtils';
-import { PUTATIVE_DRIVER } from 'shared/lib/StoreUtils';
+import { PUTATIVE_DRIVER, PUTATIVE_PASSENGER } from 'shared/lib/StoreUtils';
 
 function sampleViewAnchorTag(study_id: string, sample_id: string) {
     return `<a class="nobreak" href="${getSampleViewUrl(
@@ -583,6 +584,12 @@ export function makeGeneticTrackTooltip(
                     if (driver_filter && driver_filter === PUTATIVE_DRIVER) {
                         ret.append(
                             `<img src="${customDriverImg}" title="${driver_filter}: ${driver_filter_annotation}" alt="driver filter" style="height:11px; width:11px;margin-left:3px"/>`
+                        );
+                    }
+                    //If we have data for the binary custom driver annotations, append an icon to the tooltip with the annotation information
+                    if (driver_filter && driver_filter === PUTATIVE_PASSENGER) {
+                        ret.append(
+                            `<img src="${passengerImg}" title="${driver_filter}: ${driver_filter_annotation}" alt="passenger filter" style="height:11px; width:11px;margin-left:3px"/>`
                         );
                     }
                     //If we have data for the class custom driver annotations, append an icon to the tooltip with the annotation information

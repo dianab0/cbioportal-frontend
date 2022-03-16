@@ -289,14 +289,6 @@ export default class ResultsViewOncoprint extends React.Component<
         return makeObservable(_.keyBy(clinicalTracks, a => a.stableId));
     }
 
-    @computed get selectedClinicalTrackIds() {
-        // TODO: return makeObservable(_.keys(this.selectedClinicalAttributeSpecInits));
-        return _.keys(this.selectedClinicalTracks).reduce((acc, key) => {
-            acc.set(key as string, true);
-            return acc;
-        }, observable.map<string, boolean>({}, { deep: false }));
-    }
-
     public expansionsByGeneticTrackKey = observable.map<string, number[]>();
     public expansionsByGenesetHeatmapTrackKey = observable.map<
         string,

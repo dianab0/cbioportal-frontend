@@ -20,6 +20,7 @@ import IComparisonURLWrapper from 'pages/groupComparison/IComparisonURLWrapper';
 import _ from 'lodash';
 import { MapValues } from 'shared/lib/TypeScriptUtils';
 import { GroupComparisonTab } from 'pages/groupComparison/GroupComparisonTabs';
+import { ClinicalTrackConfig } from 'shared/components/oncoprint/Oncoprint';
 
 export type PlotsSelectionParam = {
     selectedGeneOption?: string;
@@ -314,10 +315,10 @@ export default class ResultsViewURLWrapper
         }
     }
 
-    public getOncoprintClinicalTrackParams(clinicalTracks: string[]) {
+    public getOncoprintClinicalTrackParams(clinicalTracks: ClinicalTrackConfig[]) {
         let clinicallist: string;
         if (clinicalTracks.length > 0) {
-            clinicallist = clinicalTracks.join(',');
+            clinicallist = JSON.stringify(clinicalTracks);
         } else {
             // ideally, we would like to simply give an empty string.
             //   The problem is that, in order to know whether to show
@@ -329,18 +330,32 @@ export default class ResultsViewURLWrapper
             //  the initialization state. So we have to use "null" here to
             //  distinguish the state of user having deleted all clinical tracks,
             //  because the alternative is to make a breaking change to the router library.
-
             clinicallist = 'null';
         }
         return { clinicallist };
     }
 
-    @computed public get oncoprintSelectedClinicalTracks(): string[] {
+    /**
+     * Parse clinical track config from url
+     * Query param clinicallist can be empty, 'null',
+     * a comma seperated list (legacy) or an url encoded json object
+     */
+    @computed public get oncoprintSelectedClinicalTracks(): ClinicalTrackConfig[] {
         if (!this.query.clinicallist || this.query.clinicallist === 'null') {
             return [];
-        } else {
-            return this.query.clinicallist.split(',');
         }
+        try {
+            return JSON.parse(this.query.clinicallist) as ClinicalTrackConfig[]
+        } catch {
+            return this.query.clinicallist
+                .split(',')
+                .map(id => new ClinicalTrackConfig(id));
+        }
+    }
+
+    @computed public get oncoprintSelectedClinicalTrackIds(): string[] {
+        return this.oncoprintSelectedClinicalTracks
+            .map((track) => _.isString(track) ? track : track.stableId);
     }
 
     @computed public get comparisonSubTabId() {

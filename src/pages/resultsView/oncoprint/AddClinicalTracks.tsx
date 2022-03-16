@@ -14,6 +14,7 @@ import { toggleIncluded } from '../../../shared/lib/ArrayUtils';
 import MobxPromise from 'mobxpromise';
 import { ChartDataCountSet } from 'pages/studyView/StudyViewUtils';
 import { getServerConfig, ServerConfigHelpers } from 'config/config';
+import {ClinicalTrackConfig} from "shared/components/oncoprint/Oncoprint";
 
 export interface IAddClinicalTrackProps {
     store: ResultsViewPageStore;
@@ -22,10 +23,10 @@ export interface IAddClinicalTrackProps {
     //  mobx considers every prop changed if one prop changes, so it would do
     //  unnecessary recomputation -> some rendering jitters whenever
     //  selected clinical attributes would change. This way, that doesn't happen.
-    getSelectedClinicalAttributeIds: () => (string | SpecialAttribute)[];
+    getSelectedClinicalAttributes: () => ClinicalTrackConfig[];
 
     onChangeSelectedClinicalTracks: (
-        ids: (string | SpecialAttribute)[]
+        tracks: ClinicalTrackConfig[]
     ) => void;
     clinicalTrackOptionsPromise: MobxPromise<{
         clinical: {
@@ -66,9 +67,6 @@ export default class AddClinicalTracks extends React.Component<
 
         makeObservable(this);
 
-        this.props.onChangeSelectedClinicalTracks(
-            this.defaultClinicalAttributeIds
-        );
     }
     @observable open = false;
     @observable tabId = Tab.CLINICAL;
@@ -82,8 +80,8 @@ export default class AddClinicalTracks extends React.Component<
     private addAll(clinicalAttributeIds: string[]) {
         this.props.onChangeSelectedClinicalTracks(
             _.union(
-                this.props.getSelectedClinicalAttributeIds(),
-                clinicalAttributeIds
+                this.props.getSelectedClinicalAttributes(),
+                clinicalAttributeIds.map(id => new ClinicalTrackConfig(id))
             )
         );
     }
@@ -92,31 +90,23 @@ export default class AddClinicalTracks extends React.Component<
     private clear(clinicalAttributeIds: string[]) {
         this.props.onChangeSelectedClinicalTracks(
             _.difference(
-                this.props.getSelectedClinicalAttributeIds(),
-                clinicalAttributeIds
+                this.props.getSelectedClinicalAttributes(),
+                clinicalAttributeIds.map(id => new ClinicalTrackConfig(id))
             )
         );
     }
 
     @action.bound
     private toggleClinicalTrack(clinicalAttributeId: string) {
-        this.props.onChangeSelectedClinicalTracks(
-            toggleIncluded(
-                clinicalAttributeId,
-                this.props.getSelectedClinicalAttributeIds()
-            )
+        const toggled = toggleIncluded(
+            new ClinicalTrackConfig(clinicalAttributeId),
+            this.props.getSelectedClinicalAttributes()
         );
-    }
-
-    @computed get defaultClinicalAttributeIds() {
-        const defaultTracks = ServerConfigHelpers.parseDefaultOncoprintClinicalTracks(
-            getServerConfig().oncoprint_clinical_tracks_show_by_default!
-        );
-        return defaultTracks.map(track => track.stableId);
+        this.props.onChangeSelectedClinicalTracks(toggled);
     }
 
     @computed get selectedClinicalAttributeIds() {
-        return _.keyBy(this.props.getSelectedClinicalAttributeIds());
+        return _.keyBy(this.props.getSelectedClinicalAttributes().map(a => a.stableId));
     }
 
     readonly options = remoteData({

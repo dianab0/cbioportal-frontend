@@ -303,39 +303,43 @@ export function getClinicalTrackSortComparator(track: ClinicalTrackSpec) {
     };
 }
 
+export enum SortOrder {
+    ASC = 1,
+    DESC = -1,
+    UNSORTED = 0,
+}
+
+function fromValue(val: string): SortOrder {
+    return SortOrder[val as keyof typeof SortOrder];
+}
+
 export function getClinicalTrackInitialSortDirection(
     track: ClinicalTrackSpec
-): 0 | 1 | -1 {
-    let initialSortOrder: 0 | 1 | -1 = 0;
-
+): SortOrder {
+    // TODO: should be derived from url?
     const defaultTracks = ServerConfigHelpers.parseDefaultOncoprintClinicalTracks(
         getServerConfig().oncoprint_clinical_tracks_show_by_default!
     );
 
-    defaultTracks.forEach(t => {
-        if (t.stableId === track.attributeId) {
-            if (t.sortOrder === 'ASC') {
-                initialSortOrder = 1;
-            } else if (t.sortOrder === 'DESC') {
-                initialSortOrder = -1;
-            }
-        }
-    });
-    return initialSortOrder;
+    const defaultTrack = defaultTracks.find(
+        dt => dt.stableId === track.attributeId
+    );
+    return fromValue(defaultTrack?.sortOrder || 'UNSORTED');
 }
 
 export function getClinicalTrackInitialShowGapsConfig(
     track: ClinicalTrackSpec
 ): boolean {
-    let gapOn = false;
+    let gapOn: boolean;
+    // TODO: should be derived from url?
     const defaultTracks = ServerConfigHelpers.parseDefaultOncoprintClinicalTracks(
         getServerConfig().oncoprint_clinical_tracks_show_by_default!
     );
-    defaultTracks.forEach(t => {
-        if (t.stableId === track.attributeId) {
-            gapOn = !!t.gapOn;
-        }
-    });
+    const defaultTrack = defaultTracks.find(
+        t => t.stableId === track.attributeId
+    );
+
+    gapOn = !!defaultTrack?.gapOn;
     return gapOn;
 }
 

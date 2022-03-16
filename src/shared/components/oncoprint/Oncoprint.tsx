@@ -20,6 +20,7 @@ import {
 } from '../../../pages/resultsView/ResultsViewPageStore';
 import './styles.scss';
 import { ShapeParams } from 'oncoprintjs/dist/js/oncoprintshape';
+import {SpecialAttribute} from "shared/cache/ClinicalDataCache";
 
 export type CategoricalTrackDatum = {
     entity: string;
@@ -73,6 +74,17 @@ export type ClinicalTrackSpec = {
           universal_rule_categories?: { [category: string]: any };
       }
 );
+
+export class ClinicalTrackConfig {
+    constructor(stableId: string | SpecialAttribute) {
+        this.stableId = stableId;
+    }
+    public stableId: string | SpecialAttribute;
+    public sortOrder?: string;
+    public gapOn?: boolean;
+}
+
+export type ClinicalTrackConfigMap = {[clinicalAttribute: string]: ClinicalTrackConfig };
 
 export interface IBaseHeatmapTrackDatum {
     profile_data: number | null;

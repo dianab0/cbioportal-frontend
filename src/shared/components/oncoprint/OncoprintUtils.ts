@@ -867,7 +867,7 @@ export function makeClinicalTracksMobxPromise(
                     .isComplete
             ) {
                 const attributes = Array.from(
-                    oncoprint.selectedClinicalAttributeIds.keys()
+                    _.keys(oncoprint.selectedClinicalTracks)
                 )
                     .map(attrId => {
                         return oncoprint.props.store
@@ -883,11 +883,13 @@ export function makeClinicalTracksMobxPromise(
             return ret;
         },
         invoke: async () => {
-            if (oncoprint.selectedClinicalAttributeIds.size === 0) {
+            // TODO: delete
+            //  if (oncoprint.selectedClinicalAttributeIds.size === 0) {
+            if (!_.keys(oncoprint.selectedClinicalTracks).length) {
                 return [];
             }
             const attributes = Array.from(
-                oncoprint.selectedClinicalAttributeIds.keys()
+                _.keys(oncoprint.selectedClinicalTracks)
             )
                 .map(attrId => {
                     return oncoprint.props.store

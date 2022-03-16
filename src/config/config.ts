@@ -38,6 +38,7 @@ import { CivicAPI, maskApiRequests } from 'cbioportal-utils';
 import { sendSentryMessage } from '../shared/lib/tracking';
 import { log } from '../shared/lib/consoleLog';
 import pako from 'pako';
+import { ClinicalTrackConfig } from 'shared/components/oncoprint/Oncoprint';
 
 const win = window as any;
 
@@ -123,11 +124,7 @@ export class ServerConfigHelpers {
     @memoize static parseDefaultOncoprintClinicalTracks(json: string) {
         if (!json) return [];
         try {
-            const defaultTracks: {
-                stableId: string;
-                sortOrder: string;
-                gapOn: boolean;
-            }[] = JSON.parse(json);
+            const defaultTracks: ClinicalTrackConfig[] = JSON.parse(json);
             return defaultTracks;
         } catch (ex) {
             return [];

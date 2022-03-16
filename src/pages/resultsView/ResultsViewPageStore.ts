@@ -891,26 +891,30 @@ export class ResultsViewPageStore
         },
     });
 
-    @computed.struct get comparisonGroupsReferencedInURL() {
-        // The oncoprint can have tracks which indicate comparison group membership per sample.
-        //  We want to know which comparison groups are referenced in these tracks, if any
-        //  are currently visible.
 
-        // Start by getting all the selected clinical attribute tracks
-        const groupIds = this.urlWrapper.oncoprintSelectedClinicalTracks
+    /**
+     * The oncoprint can have tracks which indicate comparison group membership per sample.
+     *  We want to know which comparison groups are referenced in these tracks, if any
+     *  are currently visible.
+     */
+    @computed.struct get comparisonGroupsReferencedInURL() {
+
+        // Get selected clinical attribute tracks:
+        const inComparisonGroupTracks = this.urlWrapper.oncoprintSelectedClinicalTrackIds
             .filter((clinicalAttributeId: string) =>
                 clinicalAttributeIsINCOMPARISONGROUP({
                     clinicalAttributeId,
                 })
-            ) // filter for comparison group tracks
+            );
 
+        // Convert track ids to group ids:
+        return inComparisonGroupTracks
             .map((clinicalAttributeId: string) =>
                 convertComparisonGroupClinicalAttribute(
                     clinicalAttributeId,
                     false
                 )
-            ); // convert track ids to group ids
-        return groupIds;
+            );
     }
 
     readonly savedComparisonGroupsForStudies = remoteData<Group[]>({
@@ -919,13 +923,11 @@ export class ResultsViewPageStore
             let ret: Group[] = [];
             if (this.appStore.isLoggedIn) {
                 try {
-                    ret = ret.concat(
-                        await comparisonClient.getGroupsForStudies(
-                            this.queriedStudies.result!.map(x => x.studyId)
-                        )
-                    );
+                    const queriedStudyIds = this.queriedStudies.result!.map(x => x.studyId);
+                    const groups = await comparisonClient.getGroupsForStudies(queriedStudyIds);
+                    ret = ret.concat(groups);
                 } catch (e) {
-                    // fail silently
+                    console.error(`Could not get groups for studies: ${this.queriedStudies}`, e);
                 }
             }
             // add any groups that are referenced in URL
@@ -1107,7 +1109,7 @@ export class ResultsViewPageStore
                 ...this.clinicalAttributes_comparisonGroupMembership.result!,
                 ...this.clinicalAttributes_customCharts.result!,
             ];
-        },
+        }
     });
 
     // TODO: Should include all clinical attributes, not just server attributes

@@ -327,22 +327,6 @@ export function getClinicalTrackInitialSortDirection(
     return fromValue(defaultTrack?.sortOrder || 'UNSORTED');
 }
 
-export function getClinicalTrackInitialShowGapsConfig(
-    track: ClinicalTrackSpec
-): boolean {
-    let gapOn: boolean;
-    // TODO: should be derived from url?
-    const defaultTracks = ServerConfigHelpers.parseDefaultOncoprintClinicalTracks(
-        getServerConfig().oncoprint_clinical_tracks_show_by_default!
-    );
-    const defaultTrack = defaultTracks.find(
-        t => t.stableId === track.attributeId
-    );
-
-    gapOn = !!defaultTrack?.gapOn;
-    return gapOn;
-}
-
 export const heatmapTrackSortComparator = (() => {
     const comparator = makeNumericalComparator('profile_data');
     return {

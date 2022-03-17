@@ -55,6 +55,8 @@ export type ClinicalTrackSpec = {
     na_legend_label?: string;
     na_tooltip_value?: string; // If given, then show a tooltip over NA columns that has this value
     custom_options?: CustomTrackOption[];
+    sortOrder?: string;
+    gapOn?: boolean;
 } & (
     | {
           datatype: 'counts';
@@ -294,8 +296,10 @@ export interface IOncoprintProps {
 
 @observer
 export default class Oncoprint extends React.Component<IOncoprintProps, {}> {
-    private div: HTMLDivElement;
+
     public oncoprint: OncoprintJS | undefined;
+
+    private div: HTMLDivElement;
     private trackSpecKeyToTrackId: { [key: string]: TrackId };
     private lastTransitionProps: IOncoprintProps;
 

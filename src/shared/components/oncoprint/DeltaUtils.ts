@@ -28,8 +28,7 @@ import {
     getGeneticTrackSortComparator,
     heatmapTrackSortComparator,
     categoricalTrackSortComparator,
-    getClinicalTrackInitialSortDirection,
-    getClinicalTrackInitialShowGapsConfig,
+    getClinicalTrackInitialSortDirection
 } from './SortUtils';
 import {
     linebreakGenesetId,
@@ -1251,6 +1250,7 @@ function transitionClinicalTrack(
         rule_set_params.legend_label = nextSpec.label;
         rule_set_params.exclude_from_legend = !nextProps.showClinicalTrackLegends;
         rule_set_params.na_legend_label = nextSpec.na_legend_label;
+
         const clinicalTrackParams: UserTrackSpec<any> = {
             rule_set_params,
             data: nextSpec.data,
@@ -1282,7 +1282,7 @@ function transitionClinicalTrack(
             onSortDirectionChange: nextProps.onTrackSortDirectionChange,
             custom_track_options: nextSpec.custom_options,
             track_can_show_gaps: nextSpec.datatype === 'string',
-            show_gaps_on_init: getClinicalTrackInitialShowGapsConfig(nextSpec),
+            show_gaps_on_init: nextSpec.gapOn,
         };
         trackSpecKeyToTrackId[nextSpec.key] = oncoprint.addTracks([
             clinicalTrackParams,

@@ -258,7 +258,7 @@ export default class ResultsViewOncoprint extends React.Component<
         [molecularProfileId: string]: number;
     } = {};
 
-    @computed get selectedClinicalTracks(): ClinicalTrackConfigMap {
+    @computed get selectedClinicalTrackConfig(): ClinicalTrackConfigMap {
         const clinicalTracks = _.clone(
             this.urlWrapper.oncoprintSelectedClinicalTracks
         );
@@ -438,7 +438,7 @@ export default class ResultsViewOncoprint extends React.Component<
 
         this.controlsState = observable({
             get selectedClinicalAttributeSpecInits(): ClinicalTrackConfigMap {
-                return self.selectedClinicalTracks;
+                return self.selectedClinicalTrackConfig;
             },
             get selectedColumnType() {
                 return self.oncoprintAnalysisCaseType;
@@ -1062,7 +1062,7 @@ export default class ResultsViewOncoprint extends React.Component<
     }
 
     @computed get clinicalTracksUrlParam() {
-        return _(this.selectedClinicalTracks)
+        return _(this.selectedClinicalTrackConfig)
             .values()
             .clone();
     }
@@ -1249,7 +1249,7 @@ export default class ResultsViewOncoprint extends React.Component<
         // ignore tracks being deleted due to rendering process reasons
         if (!this.isHidden) {
             let json: ClinicalTrackConfigMap = _.clone(
-                this.selectedClinicalTracks
+                this.selectedClinicalTrackConfig
             );
             json = _.omitBy(
                 json,
@@ -1678,7 +1678,7 @@ export default class ResultsViewOncoprint extends React.Component<
         }
 
         const areNonLocalClinicalAttributesSelected = _.some(
-            _.values(this.selectedClinicalTracks),
+            _.values(this.selectedClinicalTrackConfig),
             selected =>
                 !clinicalAttributeIsLocallyComputed({
                     clinicalAttributeId: selected.stableId,

@@ -80,8 +80,8 @@ export class ClinicalTrackConfig {
         this.stableId = stableId;
     }
     public stableId: string | SpecialAttribute;
-    public sortOrder?: string;
-    public gapOn?: boolean;
+    public sortOrder: string | null = null;
+    public gapOn: boolean | null = null;
 }
 
 export type ClinicalTrackConfigMap = {[clinicalAttribute: string]: ClinicalTrackConfig };

@@ -1266,8 +1266,9 @@ function transitionClinicalTrack(
                 delete getTrackSpecKeyToTrackId()[nextSpec.key];
             },
             onClickRemoveInTrackMenu: () => {
-                nextProps.onDeleteClinicalTrack &&
+                if(nextProps.onDeleteClinicalTrack) {
                     nextProps.onDeleteClinicalTrack(nextSpec.key);
+                }
             },
             sort_direction_changeable: true,
             tooltipFn: makeClinicalTrackTooltip(
@@ -1280,6 +1281,7 @@ function transitionClinicalTrack(
             init_sort_direction: getClinicalTrackInitialSortDirection(nextSpec),
             target_group: CLINICAL_TRACK_GROUP_INDEX,
             onSortDirectionChange: nextProps.onTrackSortDirectionChange,
+            onGapChange: nextProps.onTrackGapChange,
             custom_track_options: nextSpec.custom_options,
             track_can_show_gaps: nextSpec.datatype === 'string',
             show_gaps_on_init: nextSpec.gapOn,

@@ -66,7 +66,7 @@ export interface IOncoprintControlsHandlers
         type: 'pdf' | 'png' | 'svg' | 'order' | 'tabular' | 'oncoprinter'
     ) => void;
     onChangeSelectedClinicalTracks?: (
-        attributeIds: ClinicalTrackConfig[]
+        tracks: ClinicalTrackConfig[]
     ) => void;
     onClickAddGenesToHeatmap?: () => void;
     onSelectGenericAssayProfile?: (molecularProfileId: string) => void;

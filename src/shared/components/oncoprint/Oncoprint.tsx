@@ -286,6 +286,7 @@ export interface IOncoprintProps {
     onMinimapClose?: () => void;
     onDeleteClinicalTrack?: (key: string) => void;
     onTrackSortDirectionChange?: (trackId: TrackId, dir: number) => void;
+    onTrackGapChange?: (trackId: TrackId, gap: boolean) => void;
 
     suppressRendering?: boolean;
     onSuppressRendering?: () => void;
@@ -350,7 +351,7 @@ export default class Oncoprint extends React.Component<IOncoprintProps, {}> {
     }
 
     private refreshOncoprint(props: IOncoprintProps) {
-        const now = performance.now();
+        const start = performance.now();
         if (!this.oncoprint) {
             // instantiate new one
             this.oncoprint = new OncoprintJS(
@@ -379,7 +380,7 @@ export default class Oncoprint extends React.Component<IOncoprintProps, {}> {
             );
             this.lastTransitionProps = _.clone(props);
         }
-        console.log('oncoprint render time: ', performance.now() - now);
+        console.log('oncoprint render time: ', performance.now() - start);
     }
 
     componentWillReceiveProps(nextProps: IOncoprintProps) {

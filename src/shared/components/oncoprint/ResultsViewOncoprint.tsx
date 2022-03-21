@@ -385,6 +385,12 @@ export default class ResultsViewOncoprint extends React.Component<
     private controlsState: IOncoprintControlsState;
 
     @observable.ref private oncoprint: OncoprintJS;
+    private oncoprintComponent: Oncoprint | null = null;
+
+    @autobind
+    private oncoprintComponentRef(oncoprint: Oncoprint | null) {
+        this.oncoprintComponent = oncoprint;
+    }
 
     private urlParamsReaction: IReactionDisposer;
 
@@ -1239,7 +1245,7 @@ export default class ResultsViewOncoprint extends React.Component<
         clinicalAttributes: ClinicalTrackConfig[]
     ) {
         this.urlWrapper.updateURL(
-            this.urlWrapper.convertOncoprintClinicalTrackToUrlValue(
+            this.urlWrapper.convertClinicalTracksToUrlParam(
                 clinicalAttributes
             )
         );
@@ -1258,18 +1264,46 @@ export default class ResultsViewOncoprint extends React.Component<
                     this.clinicalTrackKeyToAttributeId(clinicalTrackKey)
             ) as ClinicalTrackConfigMap;
             this.urlWrapper.updateURL(
-                this.urlWrapper.convertOncoprintClinicalTrackToUrlValue(
+                this.urlWrapper.convertClinicalTracksToUrlParam(
                     _.values(json)
                 )
             );
         }
     }
 
+    /**
+     * Called when a clinical or heatmap track is sorted a-Z or Z-a, selected from within oncoprintjs UI
+     */
     private onTrackSortDirectionChange(trackId: TrackId, dir: number) {
-        // called when a clinical or heatmap track is sorted a-Z or Z-a, selected from within oncoprintjs UI
         if (dir === 1 || dir === -1) {
             this.sortByData();
         }
+    }
+
+    /**
+     * Update clinical track gapOn config in url query param
+     * Called when a track gap is added from within oncoprintjs UI
+     */
+    @action.bound
+    private onTrackGapChange(trackId: TrackId, gapOn: boolean) {
+        const clinicalTracksConfig = _.clone(this.selectedClinicalTrackConfig);
+        if(!this.oncoprintComponent || !this.oncoprint) {
+            return;
+        }
+        const stableId = this.clinicalTrackKeyToAttributeId(
+            this.oncoprintComponent.getTrackSpecKey(trackId) || ''
+        );
+        const isClinicalTrack = stableId && _.keys(clinicalTracksConfig).some(ctg => ctg === stableId);
+        if(!isClinicalTrack) {
+            return;
+        }
+        clinicalTracksConfig[stableId].gapOn = gapOn;
+
+        this.urlWrapper.updateURL(
+            this.urlWrapper.convertClinicalTracksToUrlParam(
+                _.values(clinicalTracksConfig)
+            )
+        );
     }
 
     @action.bound
@@ -1810,6 +1844,7 @@ export default class ResultsViewOncoprint extends React.Component<
                     <div style={{ position: 'relative', marginTop: 15 }}>
                         <div>
                             <Oncoprint
+                                ref={this.oncoprintComponentRef}
                                 oncoprintRef={this.oncoprintRef}
                                 clinicalTracks={this.clinicalTracks.result}
                                 geneticTracks={this.geneticTracks.result}
@@ -1871,6 +1906,7 @@ export default class ResultsViewOncoprint extends React.Component<
                                 onTrackSortDirectionChange={
                                     this.onTrackSortDirectionChange
                                 }
+                                onTrackGapChange={this.onTrackGapChange}
                                 initParams={{
                                     max_height: Number.POSITIVE_INFINITY,
                                 }}

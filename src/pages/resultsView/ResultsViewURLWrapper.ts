@@ -337,7 +337,7 @@ export default class ResultsViewURLWrapper
      *
      * @param clinicalTracks
      */
-    public convertOncoprintClinicalTrackToUrlValue(
+    public convertClinicalTracksToUrlParam(
         clinicalTracks: ClinicalTrackConfig[]
     ) {
         if (clinicalTracks.length) {
@@ -350,7 +350,7 @@ export default class ResultsViewURLWrapper
     /**
      * Clinical tracks as configured in url
      *
-     * See also: {@link convertOncoprintClinicalTrackToUrlValue}
+     * See also: {@link convertClinicalTracksToUrlParam}
      */
     @computed
     public get oncoprintSelectedClinicalTracks(): ClinicalTrackConfig[] {
@@ -370,7 +370,8 @@ export default class ResultsViewURLWrapper
     }
 
     /**
-     * See also: {@link convertOncoprintClinicalTrackToUrlValue}
+     * Check if clinical tracks are initialized
+     * See also: {@link convertClinicalTracksToUrlParam}
      */
     @computed public get oncoprintSelectedClinicalTracksConfigured(): boolean {
         return !!this.query.clinicallist;

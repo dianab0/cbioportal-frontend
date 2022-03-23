@@ -613,15 +613,15 @@ export default class ResultsViewOncoprint extends React.Component<
                 }
             },
         });
-        this.configureDefaultClinicalTracks();
+        if(!this.urlWrapper.clinicalTracksInitialized) {
+            this.initializeClinicalTracks();
+        }
     }
 
-    private configureDefaultClinicalTracks(): void {
+    private initializeClinicalTracks(): void {
         const defaultClinicalTracks = getServerConfig()
             .oncoprint_clinical_tracks_show_by_default;
-        const configured = this.urlWrapper
-            .oncoprintSelectedClinicalTracksConfigured;
-        if (defaultClinicalTracks && !configured) {
+        if (defaultClinicalTracks) {
             this.onChangeSelectedClinicalTracks(
                 JSON.parse(defaultClinicalTracks) as ClinicalTrackConfig[]
             );
@@ -1286,22 +1286,22 @@ export default class ResultsViewOncoprint extends React.Component<
      */
     @action.bound
     private onTrackGapChange(trackId: TrackId, gapOn: boolean) {
-        const clinicalTracksConfig = _.clone(this.selectedClinicalTrackConfig);
         if(!this.oncoprintComponent || !this.oncoprint) {
             return;
         }
+        const clinicalTracks = _.clone(this.selectedClinicalTrackConfig);
         const stableId = this.clinicalTrackKeyToAttributeId(
             this.oncoprintComponent.getTrackSpecKey(trackId) || ''
         );
-        const isClinicalTrack = stableId && _.keys(clinicalTracksConfig).some(ctg => ctg === stableId);
+        const isClinicalTrack = stableId && _.keys(clinicalTracks).some(ctg => ctg === stableId);
         if(!isClinicalTrack) {
             return;
         }
-        clinicalTracksConfig[stableId].gapOn = gapOn;
+        clinicalTracks[stableId].gapOn = gapOn;
 
         this.urlWrapper.updateURL(
             this.urlWrapper.convertClinicalTracksToUrlParam(
-                _.values(clinicalTracksConfig)
+                _.values(clinicalTracks)
             )
         );
     }

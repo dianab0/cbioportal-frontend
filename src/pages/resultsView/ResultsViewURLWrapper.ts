@@ -373,7 +373,7 @@ export default class ResultsViewURLWrapper
      * Check if clinical tracks are initialized
      * See also: {@link convertClinicalTracksToUrlParam}
      */
-    @computed public get oncoprintSelectedClinicalTracksConfigured(): boolean {
+    @computed public get clinicalTracksInitialized(): boolean {
         return !!this.query.clinicallist;
     }
 

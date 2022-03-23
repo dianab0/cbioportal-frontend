@@ -28,7 +28,7 @@ import {
     getGeneticTrackSortComparator,
     heatmapTrackSortComparator,
     categoricalTrackSortComparator,
-    getClinicalTrackInitialSortDirection
+    getClinicalTrackSortDirection
 } from './SortUtils';
 import {
     linebreakGenesetId,
@@ -1278,7 +1278,7 @@ function transitionClinicalTrack(
             important_ids: nextSpec.altered_uids, // only show clinical track legends for altered cases. e.g. if only altered cases are female for the SEX clinical track, then only show 'female' in the SEX legend
             //track_info: "\u23f3",
             sortCmpFn: getClinicalTrackSortComparator(nextSpec),
-            init_sort_direction: getClinicalTrackInitialSortDirection(nextSpec),
+            init_sort_direction: getClinicalTrackSortDirection(nextSpec),
             target_group: CLINICAL_TRACK_GROUP_INDEX,
             onSortDirectionChange: nextProps.onTrackSortDirectionChange,
             onGapChange: nextProps.onTrackGapChange,

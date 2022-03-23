@@ -313,18 +313,10 @@ function fromValue(val: string): SortOrder {
     return SortOrder[val as keyof typeof SortOrder];
 }
 
-export function getClinicalTrackInitialSortDirection(
+export function getClinicalTrackSortDirection(
     track: ClinicalTrackSpec
 ): SortOrder {
-    // TODO: should be derived from url?
-    const defaultTracks = ServerConfigHelpers.parseDefaultOncoprintClinicalTracks(
-        getServerConfig().oncoprint_clinical_tracks_show_by_default!
-    );
-
-    const defaultTrack = defaultTracks.find(
-        dt => dt.stableId === track.attributeId
-    );
-    return fromValue(defaultTrack?.sortOrder || 'UNSORTED');
+    return fromValue(track?.sortOrder || 'UNSORTED');
 }
 
 export const heatmapTrackSortComparator = (() => {

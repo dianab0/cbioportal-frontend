@@ -85,6 +85,11 @@ export class ClinicalTrackConfig {
     public sortOrder: string | null = null;
     public gapOn: boolean | null = null;
 }
+export type ClinicalTrackConfigChange = {
+    stableId?: string,
+    sortOrder?: string,
+    gapOn?: boolean,
+}
 
 export type ClinicalTrackConfigMap = {[clinicalAttribute: string]: ClinicalTrackConfig };
 

@@ -23,6 +23,7 @@ import Oncoprint, {
     GeneticTrackSpec,
     IGenesetHeatmapTrackSpec,
     IHeatmapTrackSpec,
+    ClinicalTrackConfigChange,
 } from './Oncoprint';
 import OncoprintControls, {
     IOncoprintControlsHandlers,
@@ -88,6 +89,7 @@ import {
 import { buildCBioPortalPageUrl } from '../../api/urls';
 import '../../../globalStyles/oncoprintStyles.scss';
 import { GenericAssayTrackInfo } from 'pages/studyView/addChartButton/genericAssaySelection/GenericAssaySelection';
+import {toDirectionEnum, toDirectionString} from './SortUtils';
 
 interface IResultsViewOncoprintProps {
     divId: string;
@@ -1275,6 +1277,9 @@ export default class ResultsViewOncoprint extends React.Component<
      * Called when a clinical or heatmap track is sorted a-Z or Z-a, selected from within oncoprintjs UI
      */
     private onTrackSortDirectionChange(trackId: TrackId, dir: number) {
+        const change = { sortOrder: toDirectionString(dir) };
+        this.handleClinicalTrackChange(trackId, change);
+
         if (dir === 1 || dir === -1) {
             this.sortByData();
         }
@@ -1286,7 +1291,11 @@ export default class ResultsViewOncoprint extends React.Component<
      */
     @action.bound
     private onTrackGapChange(trackId: TrackId, gapOn: boolean) {
-        if(!this.oncoprintComponent || !this.oncoprint) {
+        this.handleClinicalTrackChange(trackId, {gapOn});
+    }
+
+    private handleClinicalTrackChange(trackId: number, change: ClinicalTrackConfigChange) {
+        if (!this.oncoprintComponent || !this.oncoprint) {
             return;
         }
         const clinicalTracks = _.clone(this.selectedClinicalTrackConfig);
@@ -1294,10 +1303,10 @@ export default class ResultsViewOncoprint extends React.Component<
             this.oncoprintComponent.getTrackSpecKey(trackId) || ''
         );
         const isClinicalTrack = stableId && _.keys(clinicalTracks).some(ctg => ctg === stableId);
-        if(!isClinicalTrack) {
+        if (!isClinicalTrack) {
             return;
         }
-        clinicalTracks[stableId].gapOn = gapOn;
+        Object.assign(clinicalTracks[stableId], change);
 
         this.urlWrapper.updateURL(
             this.urlWrapper.convertClinicalTracksToUrlParam(

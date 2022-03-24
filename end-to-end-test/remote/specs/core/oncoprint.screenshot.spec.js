@@ -1,3 +1,4 @@
+const {getNthTrackOptionsElements} = require("../../../shared/lib/testUtils");
 var waitForOncoprint = require('../../../shared/specUtils').waitForOncoprint;
 var goToUrlAndSetLocalStorage = require('../../../shared/specUtils')
     .goToUrlAndSetLocalStorage;
@@ -15,22 +16,6 @@ var setDropdownOpen = require('../../../shared/specUtils').setDropdownOpen;
 const CBIOPORTAL_URL = process.env.CBIOPORTAL_URL.replace(/\/$/, '');
 
 const ONCOPRINT_TIMEOUT = 60000;
-
-function getNthTrackOptionsElements(n) {
-    // n is one-indexed
-
-    const button_selector =
-        '#oncoprintDiv .oncoprintjs__track_options__toggle_btn_img.nth-' + n;
-    const dropdown_selector =
-        '#oncoprintDiv .oncoprintjs__track_options__dropdown.nth-' + n;
-
-    return {
-        button: $(button_selector),
-        button_selector,
-        dropdown: $(dropdown_selector),
-        dropdown_selector,
-    };
-}
 
 describe('oncoprint screenshot tests', function() {
     it('ov_tcga_pub with germline mutations', function() {

@@ -8,4 +8,20 @@ module.exports = {
             assert(result[0].isWithinMisMatchTolerance, message);
         }
     },
+    getNthTrackOptionsElements(n) {
+        // n is one-indexed
+
+        const button_selector =
+            '#oncoprintDiv .oncoprintjs__track_options__toggle_btn_img.nth-' + n;
+        const dropdown_selector =
+            '#oncoprintDiv .oncoprintjs__track_options__dropdown.nth-' + n;
+
+        return {
+            button: $(button_selector),
+            button_selector,
+            dropdown: $(dropdown_selector),
+            dropdown_selector,
+        };
+    }
 };
+

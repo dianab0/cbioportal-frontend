@@ -100,7 +100,8 @@ export default class AddClinicalTracks extends React.Component<
     private toggleClinicalTrack(clinicalAttributeId: string) {
         const toggled = toggleIncluded(
             new ClinicalTrackConfig(clinicalAttributeId),
-            this.props.getSelectedClinicalAttributes()
+            this.props.getSelectedClinicalAttributes(),
+            (track) => track.stableId === clinicalAttributeId
         );
         this.props.onChangeSelectedClinicalTracks(toggled);
     }

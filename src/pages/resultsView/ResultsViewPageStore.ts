@@ -37,12 +37,8 @@ import {
     StructuralVariantFilter,
 } from 'cbioportal-ts-api-client';
 import client from 'shared/api/cbioportalClientInstance';
-import {
-    CanonicalMutationType,
-    remoteData,
-    stringListToSet,
-} from 'cbioportal-frontend-commons';
-import { action, computed, makeObservable, observable, reaction } from 'mobx';
+import {CanonicalMutationType, remoteData, stringListToSet,} from 'cbioportal-frontend-commons';
+import {action, computed, IReactionDisposer, makeObservable, observable, reaction, toJS} from 'mobx';
 import {
     generateQueryStructuralVariantId,
     getProteinPositionFromProteinChange,
@@ -50,13 +46,9 @@ import {
     indexHotspotsData,
     IOncoKbData,
 } from 'cbioportal-utils';
-import {
-    GenomeNexusAPI,
-    GenomeNexusAPIInternal,
-    VariantAnnotation,
-} from 'genome-nexus-ts-api-client';
-import { CancerGene, IndicatorQueryResp } from 'oncokb-ts-api-client';
-import { cached, MobxPromise } from 'mobxpromise';
+import {GenomeNexusAPI, GenomeNexusAPIInternal, VariantAnnotation,} from 'genome-nexus-ts-api-client';
+import {CancerGene, IndicatorQueryResp} from 'oncokb-ts-api-client';
+import {cached, MobxPromise} from 'mobxpromise';
 import PubMedCache from 'shared/cache/PubMedCache';
 import GenomeNexusCache from 'shared/cache/GenomeNexusCache';
 import GenomeNexusMutationAssessorCache from 'shared/cache/GenomeNexusMutationAssessorCache';
@@ -85,10 +77,10 @@ import {
     generateDataQueryFilter,
     generateUniqueSampleKeyToTumorTypeMap,
     getAllGenes,
+    getGenomeBuildFromStudies,
     getGenomeNexusUrl,
     getOncoKbOncogenic,
     getSurvivalClinicalAttributesPrefix,
-    getGenomeBuildFromStudies,
     groupBy,
     groupBySampleId,
     IDataQueryFilter,
@@ -98,19 +90,14 @@ import {
     mapSampleIdToClinicalData,
     ONCOKB_DEFAULT,
 } from 'shared/lib/StoreUtils';
-import {
-    CoverageInformation,
-    getCoverageInformation,
-} from 'shared/lib/GenePanelUtils';
-import { fetchHotspotsData } from 'shared/lib/CancerHotspotsUtils';
+import {CoverageInformation, getCoverageInformation,} from 'shared/lib/GenePanelUtils';
+import {fetchHotspotsData} from 'shared/lib/CancerHotspotsUtils';
 import ResultsViewMutationMapperStore from './mutation/ResultsViewMutationMapperStore';
-import { getServerConfig } from 'config/config';
+import {getServerConfig} from 'config/config';
 import _ from 'lodash';
-import { toSampleUuid } from '../../shared/lib/UuidUtils';
+import {toSampleUuid} from '../../shared/lib/UuidUtils';
 import MutationDataCache from '../../shared/cache/MutationDataCache';
-import AccessorsForOqlFilter, {
-    SimplifiedMutationType,
-} from '../../shared/lib/oql/AccessorsForOqlFilter';
+import AccessorsForOqlFilter, {SimplifiedMutationType,} from '../../shared/lib/oql/AccessorsForOqlFilter';
 import {
     doesQueryContainMutationOQL,
     doesQueryContainOQL,
@@ -130,11 +117,8 @@ import GenesetCache from '../../shared/cache/GenesetCache';
 import internalClient from '../../shared/api/cbioportalInternalClientInstance';
 import memoize from 'memoize-weak-decorator';
 import request from 'superagent';
-import {
-    countMutations,
-    mutationCountByPositionKey,
-} from './mutationCountHelpers';
-import { CancerStudyQueryUrlParams } from 'shared/components/query/QueryStore';
+import {countMutations, mutationCountByPositionKey,} from './mutationCountHelpers';
+import {CancerStudyQueryUrlParams} from 'shared/components/query/QueryStore';
 import {
     compileMutations,
     compileStructuralVariants,
@@ -160,35 +144,31 @@ import {
     parseGenericAssayGroups,
 } from './ResultsViewPageStoreUtils';
 import MobxPromiseCache from '../../shared/lib/MobxPromiseCache';
-import { isSampleProfiledInMultiple } from '../../shared/lib/isSampleProfiled';
+import {isSampleProfiledInMultiple} from '../../shared/lib/isSampleProfiled';
 import ClinicalDataCache, {
     clinicalAttributeIsINCOMPARISONGROUP,
     SpecialAttribute,
 } from '../../shared/cache/ClinicalDataCache';
-import { getDefaultMolecularProfiles } from '../../shared/lib/getDefaultMolecularProfiles';
+import {getDefaultMolecularProfiles} from '../../shared/lib/getDefaultMolecularProfiles';
 import {
     parseSamplesSpecifications,
     populateSampleSpecificationsFromVirtualStudies,
     ResultsViewTab,
     substitutePhysicalStudiesForVirtualStudies,
 } from './ResultsViewPageHelpers';
-import {
-    filterAndSortProfiles,
-    getGenesetProfiles,
-    sortRnaSeqProfilesToTop,
-} from './coExpression/CoExpressionTabUtils';
-import { generateDownloadFilenamePrefixByStudies } from 'shared/lib/FilenameUtils';
+import {filterAndSortProfiles, getGenesetProfiles, sortRnaSeqProfilesToTop,} from './coExpression/CoExpressionTabUtils';
+import {generateDownloadFilenamePrefixByStudies} from 'shared/lib/FilenameUtils';
 import {
     convertComparisonGroupClinicalAttribute,
     makeComparisonGroupClinicalAttributes,
     makeProfiledInClinicalAttributes,
 } from '../../shared/components/oncoprint/ResultsViewOncoprintUtils';
-import { annotateAlterationTypes } from '../../shared/lib/oql/annotateAlterationTypes';
-import { ErrorMessages } from '../../shared/enums/ErrorEnums';
+import {annotateAlterationTypes} from '../../shared/lib/oql/annotateAlterationTypes';
+import {ErrorMessages} from '../../shared/enums/ErrorEnums';
 import sessionServiceClient from '../../shared/api/sessionServiceInstance';
 import comparisonClient from '../../shared/api/comparisonGroupClientInstance';
-import { AppStore } from '../../AppStore';
-import { getNumSamples } from '../groupComparison/GroupComparisonUtils';
+import {AppStore} from '../../AppStore';
+import {getNumSamples} from '../groupComparison/GroupComparisonUtils';
 import autobind from 'autobind-decorator';
 import {
     ChartMeta,
@@ -203,19 +183,19 @@ import {
     SpecialChartsUniqueKeyEnum,
     StudyWithSamples,
 } from 'pages/studyView/StudyViewUtils';
-import { IVirtualStudyProps } from 'pages/studyView/virtualStudy/VirtualStudy';
-import { decideMolecularProfileSortingOrder } from './download/DownloadUtils';
+import {IVirtualStudyProps} from 'pages/studyView/virtualStudy/VirtualStudy';
+import {decideMolecularProfileSortingOrder} from './download/DownloadUtils';
 import ResultsViewURLWrapper from 'pages/resultsView/ResultsViewURLWrapper';
-import { ChartTypeEnum } from 'pages/studyView/StudyViewConfig';
+import {ChartTypeEnum} from 'pages/studyView/StudyViewConfig';
 import {
     COMMON_GENERIC_ASSAY_PROPERTY,
     fetchGenericAssayMetaByMolecularProfileIdsGroupByMolecularProfileId,
     fetchGenericAssayMetaByMolecularProfileIdsGroupedByGenericAssayType,
     getGenericAssayMetaPropertyOrDefault,
 } from 'shared/lib/GenericAssayUtils/GenericAssayCommonUtils';
-import { createVariantAnnotationsByMutationFetcher } from 'shared/components/mutationMapper/MutationMapperUtils';
-import { getGenomeNexusHgvsgUrl } from 'shared/api/urls';
-import { isMixedReferenceGenome } from 'shared/lib/referenceGenomeUtils';
+import {createVariantAnnotationsByMutationFetcher} from 'shared/components/mutationMapper/MutationMapperUtils';
+import {getGenomeNexusHgvsgUrl} from 'shared/api/urls';
+import {isMixedReferenceGenome} from 'shared/lib/referenceGenomeUtils';
 import {
     ALTERED_COLOR,
     completeSessionGroups,
@@ -224,9 +204,9 @@ import {
     ResultsViewComparisonGroup,
     UNALTERED_COLOR,
 } from './comparison/ResultsViewComparisonUtils';
-import { makeUniqueColorGetter } from '../../shared/components/plots/PlotUtils';
+import {makeUniqueColorGetter} from '../../shared/components/plots/PlotUtils';
 import ComplexKeyMap from '../../shared/lib/complexKeyDataStructures/ComplexKeyMap';
-import { getSuffixOfMolecularProfile } from 'shared/lib/molecularProfileUtils';
+import {getSuffixOfMolecularProfile} from 'shared/lib/molecularProfileUtils';
 import {
     CLINICAL_ATTRIBUTE_FIELD_ENUM,
     CLINICAL_ATTRIBUTE_ID_ENUM,
@@ -241,30 +221,28 @@ import {
     IAnnotationFilterSettings,
     IDriverAnnotationReport,
 } from '../../shared/alterationFiltering/AnnotationFilteringSettings';
-import { ISettingsMenuButtonVisible } from 'shared/components/driverAnnotations/SettingsMenuButton';
-import oql_parser, {
-    Alteration,
-    SingleGeneQuery,
-} from 'shared/lib/oql/oql-parser';
+import {ISettingsMenuButtonVisible} from 'shared/components/driverAnnotations/SettingsMenuButton';
+import oql_parser, {Alteration, SingleGeneQuery,} from 'shared/lib/oql/oql-parser';
 import {
     ANNOTATED_PROTEIN_IMPACT_FILTER_TYPE,
     createAnnotatedProteinImpactTypeFilter,
-    createNumericalFilter,
     createCategoricalFilter,
+    createNumericalFilter,
 } from 'shared/lib/MutationUtils';
 import ComplexKeyCounter from 'shared/lib/complexKeyDataStructures/ComplexKeyCounter';
 import SampleSet from 'shared/lib/sampleDataStructures/SampleSet';
+import {getTextForDataField, MutationTableColumnType,} from 'shared/components/mutationTable/MutationTable';
+import {getClonalValue} from 'shared/components/mutationTable/column/clonal/ClonalColumnFormatter';
 import {
-    MutationTableColumnType,
-    getTextForDataField,
-} from 'shared/components/mutationTable/MutationTable';
-import { getClonalValue } from 'shared/components/mutationTable/column/clonal/ClonalColumnFormatter';
-import { getCancerCellFractionValue } from 'shared/components/mutationTable/column/cancerCellFraction/CancerCellFractionColumnFormatter';
-import { getExpectedAltCopiesValue } from 'shared/components/mutationTable/column/expectedAltCopies/ExpectedAltCopiesColumnFormatter';
+    getCancerCellFractionValue
+} from 'shared/components/mutationTable/column/cancerCellFraction/CancerCellFractionColumnFormatter';
+import {
+    getExpectedAltCopiesValue
+} from 'shared/components/mutationTable/column/expectedAltCopies/ExpectedAltCopiesColumnFormatter';
 import TumorAlleleFreqColumnFormatter from 'shared/components/mutationTable/column/TumorAlleleFreqColumnFormatter';
 import NormalAlleleFreqColumnFormatter from 'shared/components/mutationTable/column/NormalAlleleFreqColumnFormatter';
 import ChromosomeColumnFormatter from 'shared/components/mutationTable/column/ChromosomeColumnFormatter';
-import { getASCNMethodValue } from 'shared/components/mutationTable/column/ascnMethod/ASCNMethodColumnFormatter';
+import {getASCNMethodValue} from 'shared/components/mutationTable/column/ascnMethod/ASCNMethodColumnFormatter';
 import SampleColumnFormatter from 'shared/components/mutationTable/column/SampleColumnFormatter';
 import GeneColumnFormatter from 'shared/components/mutationTable/column/GeneColumnFormatter';
 import ProteinChangeColumnFormatter from 'shared/components/mutationTable/column/ProteinChangeColumnFormatter';
@@ -274,11 +252,13 @@ import HgvsgColumnFormatter from 'shared/components/mutationTable/column/HgvsgCo
 import ClinvarColumnFormatter from 'shared/components/mutationTable/column/ClinvarColumnFormatter';
 import SignalColumnFormatter from 'shared/components/mutationTable/column/SignalColumnFormatter';
 import {
-    Group,
     ComparisonSession,
+    Group,
+    ResultPageSettings,
     SessionGroupData,
     VirtualStudy,
 } from 'shared/api/session-service/sessionServiceModels';
+import {PageType, PageUserSession} from "shared/userSession/PageUserSession";
 
 type Optional<T> =
     | { isApplicable: true; value: T }
@@ -540,11 +520,16 @@ export class ResultsViewPageStore
         ISettingsMenuButtonVisible {
     @observable driverAnnotationSettings: DriverAnnotationSettings;
 
-    constructor(private appStore: AppStore, urlWrapper: ResultsViewURLWrapper) {
+    private reactionDisposers: IReactionDisposer[] = [];
+    private pageUserSession: PageUserSession<ResultPageSettings>;
+
+    constructor(
+        private appStore: AppStore,
+        public urlWrapper: ResultsViewURLWrapper,
+        private sessionServiceIsEnabled: boolean
+    ) {
         makeObservable(this);
         //labelMobxPromises(this);
-
-        this.urlWrapper = urlWrapper;
 
         // addErrorHandler((error: any) => {
         //     this.ajaxErrors.push(error);
@@ -556,24 +541,49 @@ export class ResultsViewPageStore
         this.driverAnnotationSettings = buildDriverAnnotationSettings(
             () => store.didHotspotFailInOncoprint
         );
-        this.driverAnnotationsReactionDisposer = reaction(
+
+        this.pageUserSession = new PageUserSession<ResultPageSettings>(
+            appStore,
+            sessionServiceIsEnabled
+        );
+
+        this.reactionDisposers.push(reaction(
             () => this.urlWrapper.query.cancer_study_list,
             () => {
                 this.driverAnnotationSettings = buildDriverAnnotationSettings(
                     () => store.didHotspotFailInOncoprint
                 );
             },
-            { fireImmediately: true }
+            {fireImmediately: true}
+        ));
+
+        this.reactionDisposers.push(
+            reaction(
+                () => [
+                    toJS(this.cancerStudyIds)
+                ],
+                () => {
+                    this.pageUserSession.id = {page: PageType.RESULT_VIEW, origin: this.cancerStudyIds};
+                }
+            )
+        )
+        this.reactionDisposers.push(
+            reaction(
+                () => [
+                    this.urlWrapper.oncoprintSelectedClinicalTracks
+                ],
+                () => {
+                    this.pageUserSession.updateUserSettings({
+                        clinicallist: this.urlWrapper.oncoprintSelectedClinicalTracks
+                    });
+                }
+            )
         );
     }
 
     destroy() {
-        this.driverAnnotationsReactionDisposer();
+        this.reactionDisposers.forEach(disposer => disposer());
     }
-
-    public urlWrapper: ResultsViewURLWrapper;
-
-    public driverAnnotationsReactionDisposer: any;
 
     // Use gene + driver as key, e.g. TP53_DRIVER or TP53_NO_DRIVER
     private mutationMapperStoreByGeneWithDriverKey: {

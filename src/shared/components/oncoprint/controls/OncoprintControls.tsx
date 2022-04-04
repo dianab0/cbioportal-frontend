@@ -39,6 +39,7 @@ import {
     ClinicalTrackConfig,
     ClinicalTrackConfigMap,
 } from 'shared/components/oncoprint/Oncoprint';
+import FontAwesome from 'react-fontawesome';
 
 export interface IOncoprintControlsHandlers
     extends IDriverAnnotationControlsHandlers {
@@ -51,6 +52,7 @@ export interface IOncoprintControlsHandlers
     ) => void;
     onSelectShowOqlInLabels?: (show: boolean) => void;
     onSelectShowMinimap: (showMinimap: boolean) => void;
+    onSaveToSession: (saveToSession: boolean) => void;
     onSelectDistinguishMutationType: (distinguish: boolean) => void;
     onSelectDistinguishGermlineMutations: (distinguish: boolean) => void;
 
@@ -86,6 +88,7 @@ export interface IOncoprintControlsState
     onlyShowClinicalLegendForAlteredCases?: boolean;
     showOqlInLabels?: boolean;
     showMinimap: boolean;
+    saveToSession: boolean;
     distinguishMutationType: boolean;
     distinguishGermlineMutations: boolean;
     sortByMutationType: boolean;
@@ -231,6 +234,14 @@ export default class OncoprintControls extends React.Component<
         this.props.handlers.onSelectShowMinimap &&
             this.props.handlers.onSelectShowMinimap(
                 !this.props.state.showMinimap
+            );
+    }
+
+    @autobind
+    private toggleSaveToSession() {
+        this.props.handlers.onSaveToSession &&
+            this.props.handlers.onSaveToSession(
+                !this.props.state.saveToSession
             );
     }
 
@@ -1197,6 +1208,10 @@ export default class OncoprintControls extends React.Component<
         return this.props.state.showMinimap;
     }
 
+    @computed get saveToSession() {
+        return this.props.state.saveToSession;
+    }
+
     private get minimapButton() {
         return (
             <div className="btn-group">
@@ -1211,6 +1226,28 @@ export default class OncoprintControls extends React.Component<
                             alt="icon"
                             style={{ width: 15, height: 15 }}
                         />
+                    </Button>
+                </DefaultTooltip>
+            </div>
+        );
+    }
+
+    private get saveToSessionButton() {
+        return (
+            <div className="btn-group">
+                <DefaultTooltip
+                    overlay={
+                        <span>
+                            Save configuration of clinical tracks to user
+                            session.
+                        </span>
+                    }
+                >
+                    <Button
+                        active={this.saveToSession}
+                        onClick={this.toggleSaveToSession}
+                    >
+                        <FontAwesome name="cloud-upload" size="lg" />
                     </Button>
                 </DefaultTooltip>
             </div>
@@ -1236,6 +1273,7 @@ export default class OncoprintControls extends React.Component<
                     <this.DownloadMenu />
                     <this.HorzZoomControls />
                     {this.minimapButton}
+                    {this.saveToSessionButton}
                     <ConfirmNgchmModal
                         show={this.showConfirmNgchmModal}
                         onHide={() => (this.showConfirmNgchmModal = false)}

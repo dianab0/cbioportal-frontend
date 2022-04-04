@@ -610,7 +610,11 @@ export default class ResultsViewOncoprint extends React.Component<
                     return self.horzZoom;
                 }
             },
+            get saveToSession() {
+                return self.props.store.pageUserSession.sessionSavingDesired;
+            },
         });
+
         if (!this.urlWrapper.hasClinicalTracksConfig) {
             this.initializeClinicalTracksFromServerConfig();
         }
@@ -1037,6 +1041,10 @@ export default class ResultsViewOncoprint extends React.Component<
                 this.oncoprintJs.setHorzZoomCentered(
                     this.oncoprintJs.getHorzZoom() * 0.7
                 );
+            },
+            onSaveToSession: saveToSession => {
+                console.log('save to session', saveToSession);
+                this.props.store.pageUserSession.sessionSavingDesired = saveToSession;
             },
         };
     }

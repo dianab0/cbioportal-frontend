@@ -258,7 +258,10 @@ import {
     SessionGroupData,
     VirtualStudy,
 } from 'shared/api/session-service/sessionServiceModels';
-import {PageType, PageUserSession} from "shared/userSession/PageUserSession";
+import {
+    PageType,
+    PageUserSession,
+} from 'shared/userSession/PageUserSession';
 
 type Optional<T> =
     | { isApplicable: true; value: T }
@@ -521,7 +524,8 @@ export class ResultsViewPageStore
     @observable driverAnnotationSettings: DriverAnnotationSettings;
 
     private reactionDisposers: IReactionDisposer[] = [];
-    private pageUserSession: PageUserSession<ResultPageSettings>;
+
+    public pageUserSession: PageUserSession<ResultPageSettings>;
 
     constructor(
         private appStore: AppStore,
@@ -546,36 +550,42 @@ export class ResultsViewPageStore
             appStore,
             sessionServiceIsEnabled
         );
-
-        this.reactionDisposers.push(reaction(
-            () => this.urlWrapper.query.cancer_study_list,
-            () => {
-                this.driverAnnotationSettings = buildDriverAnnotationSettings(
-                    () => store.didHotspotFailInOncoprint
-                );
-            },
-            {fireImmediately: true}
-        ));
+        this.pageUserSession.id = {
+            page: PageType.RESULT_VIEW,
+            origin: this.cancerStudyIds,
+        };
 
         this.reactionDisposers.push(
             reaction(
-                () => [
-                    toJS(this.cancerStudyIds)
-                ],
+                () => this.urlWrapper.query.cancer_study_list,
                 () => {
-                    this.pageUserSession.id = {page: PageType.RESULT_VIEW, origin: this.cancerStudyIds};
+                    this.driverAnnotationSettings = buildDriverAnnotationSettings(
+                        () => store.didHotspotFailInOncoprint
+                    );
+                },
+                { fireImmediately: true }
+            )
+        );
+
+        this.reactionDisposers.push(
+            reaction(
+                () => [toJS(this.cancerStudyIds)],
+                () => {
+                    this.pageUserSession.id = {
+                        page: PageType.RESULT_VIEW,
+                        origin: this.cancerStudyIds,
+                    };
                 }
             )
-        )
+        );
         this.reactionDisposers.push(
             reaction(
-                () => [
-                    this.urlWrapper.oncoprintSelectedClinicalTracks
-                ],
+                () => [this.urlWrapper.oncoprintSelectedClinicalTracks],
                 () => {
-                    this.pageUserSession.updateUserSettings({
-                        clinicallist: this.urlWrapper.oncoprintSelectedClinicalTracks
-                    });
+                    this.pageUserSession.userSettings = {
+                        clinicallist: this.urlWrapper
+                            .oncoprintSelectedClinicalTracks,
+                    };
                 }
             )
         );
@@ -589,7 +599,6 @@ export class ResultsViewPageStore
     private mutationMapperStoreByGeneWithDriverKey: {
         [hugoGeneSymbolWithDriver: string]: ResultsViewMutationMapperStore;
     } = {};
-
     @computed get oqlText() {
         return this.urlWrapper.query.gene_list;
     }
@@ -907,6 +916,7 @@ export class ResultsViewPageStore
      *  are currently visible.
      */
     @computed.struct get comparisonGroupsReferencedInURL() {
+
         // Get selected clinical attribute tracks:
         const inComparisonGroupTracks = this.urlWrapper.oncoprintSelectedClinicalTrackIds.filter(
             (clinicalAttributeId: string) =>

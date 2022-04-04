@@ -141,6 +141,10 @@ export default class Oncoprinter extends React.Component<
                     return undefined;
                 }
             },
+            get saveToSession() {
+                // do nothing in oncoprinter mode:
+                return false;
+            },
         });
     }
 
@@ -295,6 +299,8 @@ export default class Oncoprinter extends React.Component<
                 );
             },
             onClickNGCHM: () => {}, // do nothing in oncoprinter mode
+            onSaveToSession: () => {}, // do nothing in oncoprinter mode
+            saveToSession: false,
         };
     }
 

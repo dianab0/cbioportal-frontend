@@ -610,8 +610,8 @@ export default class ResultsViewOncoprint extends React.Component<
                     return self.horzZoom;
                 }
             },
-            get saveToSession() {
-                return self.props.store.pageUserSession.sessionSavingDesired;
+            get canSaveToSession() {
+                return self.props.store.pageUserSession.isDirty;
             },
         });
 
@@ -1042,9 +1042,8 @@ export default class ResultsViewOncoprint extends React.Component<
                     this.oncoprintJs.getHorzZoom() * 0.7
                 );
             },
-            onSaveToSession: saveToSession => {
-                console.log('save to session', saveToSession);
-                this.props.store.pageUserSession.sessionSavingDesired = saveToSession;
+            onSaveToSession: () => {
+                this.props.store.pageUserSession.saveUserSession();
             },
         };
     }

@@ -141,7 +141,7 @@ export default class Oncoprinter extends React.Component<
                     return undefined;
                 }
             },
-            get saveToSession() {
+            get canSaveToSession() {
                 // do nothing in oncoprinter mode:
                 return false;
             },

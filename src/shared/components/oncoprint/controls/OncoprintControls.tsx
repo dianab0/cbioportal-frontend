@@ -52,7 +52,7 @@ export interface IOncoprintControlsHandlers
     ) => void;
     onSelectShowOqlInLabels?: (show: boolean) => void;
     onSelectShowMinimap: (showMinimap: boolean) => void;
-    onSaveToSession: (saveToSession: boolean) => void;
+    onSaveToSession: () => void;
     onSelectDistinguishMutationType: (distinguish: boolean) => void;
     onSelectDistinguishGermlineMutations: (distinguish: boolean) => void;
 
@@ -88,7 +88,7 @@ export interface IOncoprintControlsState
     onlyShowClinicalLegendForAlteredCases?: boolean;
     showOqlInLabels?: boolean;
     showMinimap: boolean;
-    saveToSession: boolean;
+    canSaveToSession: boolean;
     distinguishMutationType: boolean;
     distinguishGermlineMutations: boolean;
     sortByMutationType: boolean;
@@ -238,11 +238,10 @@ export default class OncoprintControls extends React.Component<
     }
 
     @autobind
-    private toggleSaveToSession() {
-        this.props.handlers.onSaveToSession &&
-            this.props.handlers.onSaveToSession(
-                !this.props.state.saveToSession
-            );
+    private saveToSession() {
+        if (this.props.handlers.onSaveToSession) {
+            this.props.handlers.onSaveToSession();
+        }
     }
 
     @autobind
@@ -1208,8 +1207,8 @@ export default class OncoprintControls extends React.Component<
         return this.props.state.showMinimap;
     }
 
-    @computed get saveToSession() {
-        return this.props.state.saveToSession;
+    @computed get canSaveToSession() {
+        return this.props.state.canSaveToSession;
     }
 
     private get minimapButton() {
@@ -1244,8 +1243,8 @@ export default class OncoprintControls extends React.Component<
                     }
                 >
                     <Button
-                        active={this.saveToSession}
-                        onClick={this.toggleSaveToSession}
+                        disabled={!this.canSaveToSession}
+                        onClick={this.saveToSession}
                     >
                         <FontAwesome name="cloud-upload" size="lg" />
                     </Button>

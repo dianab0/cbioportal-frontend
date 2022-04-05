@@ -30,23 +30,27 @@ export interface IPageUserSession<T extends PageSettingsData> {
      * - user is logged in;
      * - sessions are enabled
      */
-    readonly sessionSavingPossible: boolean;
+    readonly canSaveSession: boolean;
 
     /**
-     * Does the current user want to save to user session?
+     * Changes exist between local and remote userSettings
      */
-    sessionSavingDesired: boolean;
+    isDirty: boolean;
 
     id: PageSettingsIdentifier;
+
     userSettings: T | undefined;
+
+    /**
+     * Update remote user session with local changes
+     */
+    saveUserSession: () => void;
 }
 
 export class PageUserSession<T extends PageSettingsData>
     implements IPageUserSession<T> {
-    @observable public sessionSavingDesired: boolean = false;
-
     private _id: PageSettingsIdentifier;
-    private previousId: PageSettingsIdentifier;
+    private previousId: PageSettingsIdentifier | undefined;
 
     @observable
     public set id(id: PageSettingsIdentifier) {
@@ -58,19 +62,26 @@ export class PageUserSession<T extends PageSettingsData>
     }
 
     private _userSettings: T | undefined;
-    private previousUserSettings: T | undefined;
+
+    /**
+     * user settings as stored in user session
+     */
+    private sessionUserSettings: T | undefined;
+
+    private reactionDisposers: IReactionDisposer[] = [];
 
     @observable
     public set userSettings(userSettings: T | undefined) {
-        this.previousUserSettings = this._userSettings;
         this._userSettings = userSettings;
+    }
+
+    destroy() {
+        this.reactionDisposers.forEach(disposer => disposer());
     }
 
     public get userSettings(): T | undefined {
         return this._userSettings;
     }
-
-    private reactionDisposers: IReactionDisposer[] = [];
 
     constructor(
         private appStore: AppStore,
@@ -78,88 +89,79 @@ export class PageUserSession<T extends PageSettingsData>
     ) {
         makeAutoObservable(this);
 
-        /**
-         * When userSettings change:
-         * - save to session id
-         * When ID changes:
-         * - fetch new session
-         *   - what if none?
-         *     -> ? store current userSettings?
-         *   - what if mismatch between session and query url?
-         *     -> ? overwrite session with query url?
-         */
         this.reactionDisposers.push(
             reaction(
-                () => [this.savingToSession, this.id],
+                () => [this.id, this.canSaveSession],
                 async () => {
-                    await this.fetchSessionPageSettings();
-                }
-            )
-        );
-        this.reactionDisposers.push(
-            reaction(
-                () => [this.savingToSession, this.userSettings],
-                async () => {
-                    await this.updateSessionPageSettings();
+                    await this.fetchSessionUserSettings();
                 }
             )
         );
     }
 
-    private async fetchSessionPageSettings() {
-        const idChanged = !isEqualJs(this._id, this.previousId);
-        const shouldFetch = this.sessionServiceIsEnabled && idChanged;
-
-        if (shouldFetch) {
-            this.previousId = this._id;
-            this.userSettings = await sessionServiceClient.fetchPageSettings<T>(
-                this.id
-            );
-        }
-    }
-
-    private async updateSessionPageSettings() {
-        const userSettingsChanged = !isEqualJs(
-            this.userSettings,
-            this.previousUserSettings
-        );
-        const shouldUpdate = this.savingToSession && userSettingsChanged;
-
-        if (shouldUpdate) {
-            const update = {
-                ...this.id,
-                ...this.userSettings,
-            } as PageSettingsUpdate;
-            this.previousUserSettings = this._userSettings;
-            await sessionServiceClient.updateUserSettings(update);
-        }
-    }
-
-    /**
-     * Is session saving possible and desired?
-     */
     @computed
-    public get savingToSession() {
-        return (
-            this.sessionSavingPossible &&
-            this.sessionSavingDesired &&
-            this.id?.origin?.length
-        );
-    }
-
-    destroy() {
-        this.reactionDisposers.forEach(disposer => disposer());
-    }
-
-    @computed get sessionSavingPossible() {
+    public get canSaveSession() {
         return this.isLoggedIn && this.sessionServiceIsEnabled;
     }
 
-    @computed get isLoggedIn() {
+    @computed
+    public get isLoggedIn() {
         return this.appStore.isLoggedIn;
+    }
+
+    @computed
+    public get isDirty(): boolean {
+        return this.idIsDirty || this.userSettingsAreDirty;
+    }
+
+    @computed
+    private get idIsDirty(): boolean {
+        return !isEqualJs(this._id, this.previousId);
+    }
+
+    @computed
+    private get userSettingsAreDirty(): boolean {
+        return !isEqualJs(this._userSettings, this.sessionUserSettings);
+    }
+
+    /**
+     * Fetch user settings from session
+     * Note: does not set user settings
+     */
+    private async fetchSessionUserSettings() {
+        const shouldFetch = this.canSaveSession && this.idIsDirty;
+
+        if (shouldFetch) {
+            this.sessionUserSettings = await sessionServiceClient.fetchPageSettings<
+                T
+            >(this.id);
+            this.previousId = this.id;
+        }
+    }
+
+    public async saveUserSession() {
+        if (!this.isDirty || !this.canSaveSession) {
+            return;
+        }
+        const update = {
+            ...this.id,
+            ...this.userSettings,
+        } as PageSettingsUpdate;
+        await sessionServiceClient.updateUserSettings(update);
+        this.sessionUserSettings = this.userSettings;
+        this.previousId = this.id;
     }
 }
 
 function isEqualJs(a: any, b: any) {
-    return _.isEqual(toJS(a), toJS(b));
+    return _.isEqualWith(toJS(a), toJS(b), nilIsEqual);
+}
+
+/**
+ * Null is equal to undefined
+ */
+function nilIsEqual(a: any, b: any) {
+    if (_.isNil(a) && _.isNil(b)) {
+        return a == b;
+    }
 }

@@ -25,22 +25,50 @@ export type PageSettingsIdentifier = {
 };
 
 export interface IPageUserSession<T extends PageSettingsData> {
-    readonly isLoggedIn: boolean;
+    /**
+     * Session saving is possible when:
+     * - user is logged in;
+     * - sessions are enabled
+     */
     readonly sessionSavingPossible: boolean;
+
+    /**
+     * Does the current user want to save to user session?
+     */
+    sessionSavingDesired: boolean;
+
     id: PageSettingsIdentifier;
     userSettings: T | undefined;
 }
 
 export class PageUserSession<T extends PageSettingsData>
     implements IPageUserSession<T> {
-    /**
-     * Does a user want to save to user session?
-     */
     @observable public sessionSavingDesired: boolean = false;
 
-    @observable public id: PageSettingsIdentifier;
+    private _id: PageSettingsIdentifier;
+    private previousId: PageSettingsIdentifier;
 
-    @observable public userSettings: T | undefined;
+    @observable
+    public set id(id: PageSettingsIdentifier) {
+        this._id = id;
+    }
+
+    public get id(): PageSettingsIdentifier {
+        return this._id;
+    }
+
+    private _userSettings: T | undefined;
+    private previousUserSettings: T | undefined;
+
+    @observable
+    public set userSettings(userSettings: T | undefined) {
+        this.previousUserSettings = this._userSettings;
+        this._userSettings = userSettings;
+    }
+
+    public get userSettings(): T | undefined {
+        return this._userSettings;
+    }
 
     private reactionDisposers: IReactionDisposer[] = [];
 
@@ -64,11 +92,7 @@ export class PageUserSession<T extends PageSettingsData>
             reaction(
                 () => [this.savingToSession, this.id],
                 async () => {
-                    if (this.savingToSession) {
-                        this.userSettings = await sessionServiceClient.fetchPageSettings<
-                            T
-                        >(this.id);
-                    }
+                    await this.fetchSessionPageSettings();
                 }
             )
         );
@@ -76,10 +100,39 @@ export class PageUserSession<T extends PageSettingsData>
             reaction(
                 () => [this.savingToSession, this.userSettings],
                 async () => {
-                    await this.updateUserSession();
+                    await this.updateSessionPageSettings();
                 }
             )
         );
+    }
+
+    private async fetchSessionPageSettings() {
+        const idChanged = !isEqualJs(this._id, this.previousId);
+        const shouldFetch = this.sessionServiceIsEnabled && idChanged;
+
+        if (shouldFetch) {
+            this.previousId = this._id;
+            this.userSettings = await sessionServiceClient.fetchPageSettings<T>(
+                this.id
+            );
+        }
+    }
+
+    private async updateSessionPageSettings() {
+        const userSettingsChanged = !isEqualJs(
+            this.userSettings,
+            this.previousUserSettings
+        );
+        const shouldUpdate = this.savingToSession && userSettingsChanged;
+
+        if (shouldUpdate) {
+            const update = {
+                ...this.id,
+                ...this.userSettings,
+            } as PageSettingsUpdate;
+            this.previousUserSettings = this._userSettings;
+            await sessionServiceClient.updateUserSettings(update);
+        }
     }
 
     /**
@@ -94,20 +147,6 @@ export class PageUserSession<T extends PageSettingsData>
         );
     }
 
-    private async updateUserSession() {
-        let shouldUpdate = this.savingToSession && this.userSettings;
-
-        if (!shouldUpdate) {
-            return;
-        }
-
-        const update = {
-            ...this.id,
-            ...this.userSettings,
-        } as PageSettingsUpdate;
-        await sessionServiceClient.updateUserSettings(update);
-    }
-
     destroy() {
         this.reactionDisposers.forEach(disposer => disposer());
     }
@@ -119,4 +158,8 @@ export class PageUserSession<T extends PageSettingsData>
     @computed get isLoggedIn() {
         return this.appStore.isLoggedIn;
     }
+}
+
+function isEqualJs(a: any, b: any) {
+    return _.isEqual(toJS(a), toJS(b));
 }

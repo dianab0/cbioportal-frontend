@@ -596,6 +596,7 @@ export class ResultsViewPageStore
     }
 
     // Use gene + driver as key, e.g. TP53_DRIVER or TP53_NO_DRIVER
+
     private mutationMapperStoreByGeneWithDriverKey: {
         [hugoGeneSymbolWithDriver: string]: ResultsViewMutationMapperStore;
     } = {};

@@ -100,6 +100,7 @@ export class PageUserSession<T extends PageSettingsData>
             this.sessionUserSettings = await sessionServiceClient.fetchPageSettings<
                 T
             >(this.id);
+            this.userSettings = this.sessionUserSettings;
             this.previousId = this.id;
         }
     }

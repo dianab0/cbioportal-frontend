@@ -2,7 +2,15 @@ import _ from 'lodash';
 import internalClient from 'shared/api/cbioportalInternalClientInstance';
 import defaultClient from 'shared/api/cbioportalClientInstance';
 import oncoKBClient from 'shared/api/oncokbClientInstance';
-import {action, computed, IReactionDisposer, makeObservable, observable, reaction, toJS,} from 'mobx';
+import {
+    action,
+    computed,
+    IReactionDisposer,
+    makeObservable,
+    observable,
+    reaction,
+    toJS,
+} from 'mobx';
 import {
     AlterationFilter,
     AndedPatientTreatmentFilters,
@@ -53,8 +61,8 @@ import {
     getSurvivalClinicalAttributesPrefix,
     MolecularAlterationType_filenameSuffix,
 } from 'shared/lib/StoreUtils';
-import {PatientSurvival} from 'shared/model/PatientSurvival';
-import {getPatientSurvivals} from 'pages/resultsView/SurvivalStoreHelper';
+import { PatientSurvival } from 'shared/model/PatientSurvival';
+import { getPatientSurvivals } from 'pages/resultsView/SurvivalStoreHelper';
 import {
     AnalysisGroup,
     annotationFilterActive,
@@ -133,15 +141,23 @@ import {
     updateCustomIntervalFilter,
 } from './StudyViewUtils';
 import MobxPromise from 'mobxpromise';
-import {SingleGeneQuery} from 'shared/lib/oql/oql-parser';
+import { SingleGeneQuery } from 'shared/lib/oql/oql-parser';
 import autobind from 'autobind-decorator';
-import {isQueriedStudyAuthorized, updateGeneQuery} from 'pages/studyView/StudyViewUtils';
-import {generateDownloadFilenamePrefixByStudies} from 'shared/lib/FilenameUtils';
-import {unparseOQLQueryLine} from 'shared/lib/oql/oqlfilter';
+import {
+    isQueriedStudyAuthorized,
+    updateGeneQuery,
+} from 'pages/studyView/StudyViewUtils';
+import { generateDownloadFilenamePrefixByStudies } from 'shared/lib/FilenameUtils';
+import { unparseOQLQueryLine } from 'shared/lib/oql/oqlfilter';
 import sessionServiceClient from 'shared/api//sessionServiceInstance';
 import windowStore from 'shared/components/window/WindowStore';
-import {getHeatmapMeta} from '../../shared/lib/MDACCUtils';
-import {ChartDimension, ChartTypeEnum, STUDY_VIEW_CONFIG, StudyViewLayout,} from './StudyViewConfig';
+import { getHeatmapMeta } from '../../shared/lib/MDACCUtils';
+import {
+    ChartDimension,
+    ChartTypeEnum,
+    STUDY_VIEW_CONFIG,
+    StudyViewLayout,
+} from './StudyViewConfig';
 import {
     getComparisonLoadingUrl,
     getMDAndersonHeatmapStudyMetaUrl,
@@ -154,10 +170,10 @@ import {
     pluralize,
     remoteData,
     stringListToSet,
-    toPromise
+    toPromise,
 } from 'cbioportal-frontend-commons';
 import request from 'superagent';
-import {trackStudyViewFilterEvent} from '../../shared/lib/tracking';
+import { trackStudyViewFilterEvent } from '../../shared/lib/tracking';
 import comparisonClient from '../../shared/api/comparisonGroupClientInstance';
 import {
     finalizeStudiesAttr,
@@ -166,38 +182,41 @@ import {
     splitData,
     StudyViewComparisonGroup,
 } from '../groupComparison/GroupComparisonUtils';
-import {LoadingPhase} from '../groupComparison/GroupComparisonLoading';
-import {sleepUntil} from '../../shared/lib/TimeUtils';
+import { LoadingPhase } from '../groupComparison/GroupComparisonLoading';
+import { sleepUntil } from '../../shared/lib/TimeUtils';
 import ComplexKeyMap from '../../shared/lib/complexKeyDataStructures/ComplexKeyMap';
 import MobxPromiseCache from 'shared/lib/MobxPromiseCache';
-import {CancerGene} from 'oncokb-ts-api-client';
+import { CancerGene } from 'oncokb-ts-api-client';
 
-import {AppStore} from 'AppStore';
-import {getGeneCNAOQL} from 'pages/studyView/TableUtils';
-import {MultiSelectionTableRow} from './table/MultiSelectionTable';
+import { AppStore } from 'AppStore';
+import { getGeneCNAOQL } from 'pages/studyView/TableUtils';
+import { MultiSelectionTableRow } from './table/MultiSelectionTable';
 import {
     getGroupParameters,
     getSelectedGroups,
 } from '../groupComparison/comparisonGroupManager/ComparisonGroupManagerUtils';
-import {IStudyViewScatterPlotData} from './charts/scatterPlot/StudyViewScatterPlotUtils';
-import {StudyViewPageTabKeyEnum} from 'pages/studyView/StudyViewPageTabs';
-import {AlterationTypeConstants, DataTypeConstants,} from 'pages/resultsView/ResultsViewPageStore';
+import { IStudyViewScatterPlotData } from './charts/scatterPlot/StudyViewScatterPlotUtils';
+import { StudyViewPageTabKeyEnum } from 'pages/studyView/StudyViewPageTabs';
+import {
+    AlterationTypeConstants,
+    DataTypeConstants,
+} from 'pages/resultsView/ResultsViewPageStore';
 import {
     createSurvivalAttributeIdsDict,
     generateStudyViewSurvivalPlotTitle,
     getSurvivalStatusBoolean,
 } from 'pages/resultsView/survival/SurvivalUtil';
-import {ISurvivalDescription} from 'pages/resultsView/survival/SurvivalDescriptionTable';
+import { ISurvivalDescription } from 'pages/resultsView/survival/SurvivalDescriptionTable';
 import {
     toTreatmentFilter,
     treatmentComparisonGroupName,
     treatmentUniqueKey,
 } from './table/treatments/treatmentsTableUtil';
 import StudyViewURLWrapper from './StudyViewURLWrapper';
-import {isMixedReferenceGenome} from 'shared/lib/referenceGenomeUtils';
-import {Datalabel} from 'shared/lib/DataUtils';
+import { isMixedReferenceGenome } from 'shared/lib/referenceGenomeUtils';
+import { Datalabel } from 'shared/lib/DataUtils';
 import PromisePlus from 'shared/lib/PromisePlus';
-import {getSuffixOfMolecularProfile} from 'shared/lib/molecularProfileUtils';
+import { getSuffixOfMolecularProfile } from 'shared/lib/molecularProfileUtils';
 import {
     createAlteredGeneComparisonSession,
     doesChartHaveComparisonGroupsLimit,
@@ -206,7 +225,10 @@ import {
     getSvData,
     groupSvDataByGene,
 } from 'pages/studyView/StudyViewComparisonUtils';
-import {CNA_AMP_VALUE, CNA_HOMDEL_VALUE,} from 'pages/resultsView/enrichments/EnrichmentsUtil';
+import {
+    CNA_AMP_VALUE,
+    CNA_HOMDEL_VALUE,
+} from 'pages/resultsView/enrichments/EnrichmentsUtil';
 import {
     GenericAssayDataBin,
     GenericAssayDataBinFilter,
@@ -224,9 +246,12 @@ import {
     IDriverAnnotationReport,
     initializeCustomDriverAnnotationSettings,
 } from 'shared/alterationFiltering/AnnotationFilteringSettings';
-import {ISettingsMenuButtonVisible} from 'shared/components/driverAnnotations/SettingsMenuButton';
-import {CopyNumberEnrichmentEventType, MutationEnrichmentEventType,} from 'shared/lib/comparison/ComparisonStoreUtils';
-import {getServerConfig} from 'config/config';
+import { ISettingsMenuButtonVisible } from 'shared/components/driverAnnotations/SettingsMenuButton';
+import {
+    CopyNumberEnrichmentEventType,
+    MutationEnrichmentEventType,
+} from 'shared/lib/comparison/ComparisonStoreUtils';
+import { getServerConfig } from 'config/config';
 import {
     ChartUserSetting,
     CustomChart,
@@ -237,7 +262,7 @@ import {
     StudyPageSettings,
     VirtualStudy,
 } from 'shared/api/session-service/sessionServiceModels';
-import {PageType} from "shared/userSession/PageUserSession";
+import { PageType } from 'shared/userSession/PageType';
 
 type ChartUniqueKey = string;
 type ResourceId = string;

@@ -1,5 +1,5 @@
 import * as request from 'superagent';
-import {getSessionUrl} from '../urls';
+import { getSessionUrl } from '../urls';
 import {
     CustomChart,
     CustomChartData,
@@ -8,7 +8,8 @@ import {
     StudyPageSettings,
     VirtualStudy,
 } from './sessionServiceModels';
-import {PageSettingsIdentifier, PageType} from "shared/userSession/PageUserSession";
+import { PageType } from 'shared/userSession/PageType';
+import { PageSettingsIdentifier } from 'shared/userSession/PageSettingsIdentifier';
 
 export default class sessionServiceAPI {
     getVirtualStudyServiceUrl() {
@@ -109,17 +110,19 @@ export default class sessionServiceAPI {
     fetchStudyPageSettings(
         studyIds: string[]
     ): Promise<StudyPageSettings | undefined> {
-        return this.fetchPageSettings<StudyPageSettings>(
-            { page: PageType.STUDY_VIEW, origin: studyIds }
-        );
+        return this.fetchPageSettings<StudyPageSettings>({
+            page: PageType.STUDY_VIEW,
+            origin: studyIds,
+        });
     }
 
     fetchResultPageSettings(
         cancerStudyList: string[]
     ): Promise<StudyPageSettings | undefined> {
-        return this.fetchPageSettings<StudyPageSettings>(
-            { page: PageType.STUDY_VIEW, origin: cancerStudyList }
-        );
+        return this.fetchPageSettings<StudyPageSettings>({
+            page: PageType.STUDY_VIEW,
+            origin: cancerStudyList,
+        });
     }
 
     //main session API's - END
@@ -136,8 +139,8 @@ export default class sessionServiceAPI {
                 .then((res: any) => {
                     //can be undefined if nothing was saved previously
                     return res.body;
-                })
-        ) as Promise<T>;
+                }) as Promise<T>
+        );
     }
 
     updateUserSettings(data: PageSettingsUpdate) {

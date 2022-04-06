@@ -1,7 +1,7 @@
 import { ClinicalData, StudyViewFilter } from 'cbioportal-ts-api-client';
 import { ChartType } from 'pages/studyView/StudyViewUtils';
-import {ClinicalTrackConfig} from "shared/components/oncoprint/Oncoprint";
-import {PageSettingsIdentifier} from "shared/userSession/PageUserSession";
+import { ClinicalTrackConfig } from 'shared/components/oncoprint/Oncoprint';
+import { PageSettingsIdentifier } from 'shared/userSession/PageSettingsIdentifier';
 
 export interface Session {
     id: string;

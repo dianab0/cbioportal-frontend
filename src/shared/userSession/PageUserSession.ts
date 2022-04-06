@@ -13,39 +13,8 @@ import {
 import sessionServiceClient from 'shared/api/sessionServiceInstance';
 import { AppStore } from 'AppStore';
 import _ from 'lodash';
-
-export enum PageType {
-    RESULT_VIEW = 'result_view',
-    STUDY_VIEW = 'study_view',
-}
-
-export type PageSettingsIdentifier = {
-    page: PageType;
-    origin: string[];
-};
-
-export interface IPageUserSession<T extends PageSettingsData> {
-    /**
-     * Session saving is possible when:
-     * - user is logged in;
-     * - sessions are enabled
-     */
-    readonly canSaveSession: boolean;
-
-    /**
-     * Changes exist between local and remote userSettings
-     */
-    isDirty: boolean;
-
-    id: PageSettingsIdentifier;
-
-    userSettings: T | undefined;
-
-    /**
-     * Update remote user session with local changes
-     */
-    saveUserSession: () => void;
-}
+import { IPageUserSession } from 'shared/userSession/IPageUserSession';
+import { PageSettingsIdentifier } from './PageSettingsIdentifier';
 
 export class PageUserSession<T extends PageSettingsData>
     implements IPageUserSession<T> {
@@ -124,10 +93,6 @@ export class PageUserSession<T extends PageSettingsData>
         return !isEqualJs(this._userSettings, this.sessionUserSettings);
     }
 
-    /**
-     * Fetch user settings from session
-     * Note: does not set user settings
-     */
     private async fetchSessionUserSettings() {
         const shouldFetch = this.canSaveSession && this.idIsDirty;
 
@@ -158,10 +123,14 @@ function isEqualJs(a: any, b: any) {
 }
 
 /**
- * Null is equal to undefined
+ * @returns {true|undefined}
+ *  true when both null or undefined;
+ *  undefined to use default comparator
  */
 function nilIsEqual(a: any, b: any) {
     if (_.isNil(a) && _.isNil(b)) {
-        return a == b;
+        return true;
+    } else {
+        return undefined;
     }
 }

@@ -258,10 +258,8 @@ import {
     SessionGroupData,
     VirtualStudy,
 } from 'shared/api/session-service/sessionServiceModels';
-import {
-    PageType,
-    PageUserSession,
-} from 'shared/userSession/PageUserSession';
+import { PageUserSession } from 'shared/userSession/PageUserSession';
+import { PageType } from 'shared/userSession/PageType';
 
 type Optional<T> =
     | { isApplicable: true; value: T }
@@ -550,6 +548,7 @@ export class ResultsViewPageStore
             appStore,
             sessionServiceIsEnabled
         );
+
         this.pageUserSession.id = {
             page: PageType.RESULT_VIEW,
             origin: this.cancerStudyIds,
@@ -569,7 +568,7 @@ export class ResultsViewPageStore
 
         this.reactionDisposers.push(
             reaction(
-                () => [toJS(this.cancerStudyIds)],
+                () => [this.cancerStudyIds],
                 () => {
                     this.pageUserSession.id = {
                         page: PageType.RESULT_VIEW,
@@ -578,6 +577,7 @@ export class ResultsViewPageStore
                 }
             )
         );
+
         this.reactionDisposers.push(
             reaction(
                 () => [this.urlWrapper.oncoprintSelectedClinicalTracks],

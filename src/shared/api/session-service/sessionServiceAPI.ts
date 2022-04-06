@@ -10,6 +10,7 @@ import {
 } from './sessionServiceModels';
 import { PageType } from 'shared/userSession/PageType';
 import { PageSettingsIdentifier } from 'shared/userSession/PageSettingsIdentifier';
+import _ from 'lodash';
 
 export default class sessionServiceAPI {
     getVirtualStudyServiceUrl() {
@@ -138,8 +139,8 @@ export default class sessionServiceAPI {
                 .forceUpdate(true)
                 .then((res: any) => {
                     //can be undefined if nothing was saved previously
-                    return res.body;
-                }) as Promise<T>
+                    return _.omit(res.body, Object.keys(id));
+                })
         );
     }
 

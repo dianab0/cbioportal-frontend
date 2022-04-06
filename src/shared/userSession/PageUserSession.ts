@@ -80,21 +80,16 @@ export class PageUserSession<T extends PageSettingsData>
 
     @computed
     public get isDirty(): boolean {
-        return this.idIsDirty || this.userSettingsAreDirty;
-    }
-
-    @computed
-    private get idIsDirty(): boolean {
-        return !isEqualJs(this._id, this.previousId);
-    }
-
-    @computed
-    private get userSettingsAreDirty(): boolean {
-        return !isEqualJs(this._userSettings, this.sessionUserSettings);
+        const dirtyUserSettings = !isEqualJs(
+            this._userSettings,
+            this.sessionUserSettings
+        );
+        const dirtyId = !isEqualJs(this._id, this.previousId);
+        return dirtyUserSettings || dirtyId;
     }
 
     private async fetchSessionUserSettings() {
-        const shouldFetch = this.canSaveSession && this.idIsDirty;
+        const shouldFetch = this.canSaveSession && this.isDirty;
 
         if (shouldFetch) {
             this.sessionUserSettings = await sessionServiceClient.fetchPageSettings<

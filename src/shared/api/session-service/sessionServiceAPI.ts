@@ -5,6 +5,7 @@ import {
     CustomChartData,
     PageSettingsData,
     PageSettingsUpdate,
+    ResultPageSettings,
     StudyPageSettings,
     VirtualStudy,
 } from './sessionServiceModels';
@@ -108,6 +109,9 @@ export default class sessionServiceAPI {
         );
     }
 
+    /**
+     * @returns {StudyPageSettings} including ID fields
+     */
     fetchStudyPageSettings(
         studyIds: string[]
     ): Promise<StudyPageSettings | undefined> {
@@ -117,13 +121,19 @@ export default class sessionServiceAPI {
         });
     }
 
-    fetchResultPageSettings(
+    /**
+     * @returns {ResultPageSettings} without ID fields
+     */
+    async fetchResultPageSettings(
         cancerStudyList: string[]
-    ): Promise<StudyPageSettings | undefined> {
-        return this.fetchPageSettings<StudyPageSettings>({
+    ): Promise<ResultPageSettings | undefined> {
+        const id = {
             page: PageType.STUDY_VIEW,
             origin: cancerStudyList,
-        });
+        };
+        const pageSession = await this.fetchPageSettings(id);
+        const userSession = _.omit(pageSession, Object.keys(id));
+        return userSession as ResultPageSettings;
     }
 
     //main session API's - END
@@ -139,7 +149,7 @@ export default class sessionServiceAPI {
                 .forceUpdate(true)
                 .then((res: any) => {
                     //can be undefined if nothing was saved previously
-                    return _.omit(res.body, Object.keys(id));
+                    return res.body;
                 })
         );
     }

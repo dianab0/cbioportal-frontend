@@ -617,8 +617,8 @@ export default class ResultsViewOncoprint extends React.Component<
     }
 
     private configureClinicalTracks() {
-        const sessionConfig = this.props.store.pageUserSession.userSettings
-            ?.clinicallist;
+        const sessionConfig = this.props.store.pageUserSession
+            .sessionUserSettings?.clinicallist;
         const urlConfig = this.urlWrapper.hasClinicalTracksConfig;
 
         if (!urlConfig && !sessionConfig) {

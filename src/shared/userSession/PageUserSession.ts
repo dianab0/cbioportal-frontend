@@ -35,7 +35,7 @@ export class PageUserSession<T extends PageSettingsData>
     /**
      * user settings as stored in user session
      */
-    private sessionUserSettings: T | undefined;
+    public sessionUserSettings: T | undefined;
 
     private reactionDisposers: IReactionDisposer[] = [];
 
@@ -94,8 +94,7 @@ export class PageUserSession<T extends PageSettingsData>
         if (shouldFetch) {
             this.sessionUserSettings = await sessionServiceClient.fetchPageSettings<
                 T
-            >(this.id);
-            this.userSettings = this.sessionUserSettings;
+            >(this.id, true);
             this.previousId = this.id;
         }
     }

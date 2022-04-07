@@ -122,24 +122,13 @@ export default class sessionServiceAPI {
     }
 
     /**
-     * @returns {ResultPageSettings} without ID fields
+     * main session API's - END
+     * StudyPage Settings API's - START
+     * @returns {PageSettingsData} with or without id fields
      */
-    async fetchResultPageSettings(
-        cancerStudyList: string[]
-    ): Promise<ResultPageSettings | undefined> {
-        const id = {
-            page: PageType.STUDY_VIEW,
-            origin: cancerStudyList,
-        };
-        const pageSession = await this.fetchPageSettings(id);
-        const userSession = _.omit(pageSession, Object.keys(id));
-        return userSession as ResultPageSettings;
-    }
-
-    //main session API's - END
-    //StudyPage Settings API's - START
     fetchPageSettings<T extends PageSettingsData>(
-        id: PageSettingsIdentifier
+        id: PageSettingsIdentifier,
+        omitId?: boolean
     ): Promise<T | undefined> {
         return (
             request
@@ -149,7 +138,10 @@ export default class sessionServiceAPI {
                 .forceUpdate(true)
                 .then((res: any) => {
                     //can be undefined if nothing was saved previously
-                    return res.body;
+                    const settings = res.body;
+                    return omitId
+                        ? _.omit(settings, Object.keys(id))
+                        : settings;
                 })
         );
     }

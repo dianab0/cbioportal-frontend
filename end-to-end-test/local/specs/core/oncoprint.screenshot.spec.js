@@ -81,7 +81,8 @@ const MANUAL_TRACK_CONFIG = [
     },
 ];
 
-const ONCOPRINT_TIMEOUT = 60000;
+const ONCOPRINT_TIMEOUT = 100000;
+
 describe('oncoprint', function() {
     describe('generic assay categorical tracks', () => {
         it('shows binary and multiple category tracks', () => {
@@ -92,7 +93,7 @@ describe('oncoprint', function() {
         });
     });
 
-    describe.only('clinical tracks', () => {
+    describe('clinical tracks', () => {
         beforeEach(() => {
             goToUrlAndSetLocalStorageWithProperty(
                 studyes0_oncoprintTabUrl,
@@ -107,7 +108,7 @@ describe('oncoprint', function() {
         });
 
         it('initializes as configured by default', () => {
-            const res = checkOncoprintElement('.oncoprintContainer');
+            const res = checkOncoprintElement();
             assertScreenShotMatch(res);
         });
 
@@ -164,7 +165,7 @@ describe('oncoprint', function() {
             const url = browser.getUrl();
             const clinicalList = new URLSearchParams(url).get('clinicallist');
             expect(clinicalList).toEqual(JSON.stringify(MANUAL_TRACK_CONFIG));
-            const res = checkOncoprintElement('.oncoprintContainer');
+            const res = checkOncoprintElement();
             assertScreenShotMatch(res);
         });
 
@@ -175,13 +176,75 @@ describe('oncoprint', function() {
 
             // Legacy format should be converted to config json:
             const url = browser.getUrl();
-            const clinicalList = JSON.parse(
-                decodeURIComponent(new URLSearchParams(url).get('clinicallist'))
-            );
+
+            const clinicalList = getClinicallistConfigFromUrl(browser);
             const stableIds = clinicalList.map(tracks => tracks.stableId);
             expect(stableIds.join(',')).toEqual(legacyFormatUrlParam);
             expect(clinicalList[0].sortOrder).toEqual('ASC');
-            const res = checkOncoprintElement('.oncoprintContainer');
+            const res = checkOncoprintElement();
+            assertScreenShotMatch(res);
+        });
+
+        /**
+         * Note: to rerun test locally, first clean user session
+         */
+        it('stores config in user session when save button clicked', () => {
+            // Load page with a default config that differs from DEFAULT_TRACK_CONFIG:
+            const customConfig = JSON.parse(
+                JSON.stringify(DEFAULT_TRACK_CONFIG)
+            );
+            customConfig.pop();
+            browser.url(
+                studyes0_oncoprintTabUrl +
+                    '&clinicallist=' +
+                    encodeURIComponent(JSON.stringify(customConfig))
+            );
+            waitForOncoprint(ONCOPRINT_TIMEOUT);
+
+            // Check button enabled
+            const $saveSessionBtn = $('#save-oncoprint-config-to-session');
+            const saveBtnIsEnabled =
+                $saveSessionBtn.getAttribute('disabled') === null;
+            expect(saveBtnIsEnabled).toBe(true);
+
+            // Click button
+            $saveSessionBtn.click();
+            waitForOncoprint(ONCOPRINT_TIMEOUT);
+
+            // Check button disabled
+            const saveBtnIsDisabled =
+                $saveSessionBtn.getAttribute('disabled') === '';
+            expect(saveBtnIsDisabled).toBe(true);
+        });
+
+        /**
+         * Uses session from previous test
+         * to differentiate between default and custom config
+         */
+        it('uses configuration stored in session when available', () => {
+            const customConfig = JSON.parse(
+                JSON.stringify(DEFAULT_TRACK_CONFIG)
+            );
+            customConfig.pop();
+            const urlConfig = getClinicallistConfigFromUrl(browser);
+            expect(urlConfig).toEqual(customConfig);
+        });
+
+        /**
+         * Load page with a default config that differs
+         * from DEFAULT_TRACK_CONFIG and session config
+         */
+        it('prefers url when session and url configuration differ', () => {
+            const customUrlConfig = _.cloneDeep(SERVER_DEFAULT_TRACK_CONFIG);
+            customUrlConfig[0].gapOn = !customUrlConfig[0].gapOn;
+            browser.url(
+                studyes0_oncoprintTabUrl +
+                    '&clinicallist=' +
+                    encodeURIComponent(JSON.stringify(customUrlConfig))
+            );
+            waitForOncoprint(ONCOPRINT_TIMEOUT);
+
+            const res = checkOncoprintElement();
             assertScreenShotMatch(res);
         });
 
@@ -211,3 +274,10 @@ describe('oncoprint', function() {
     });
 
 });
+
+function getClinicallistConfigFromUrl(browser) {
+    const url = browser.getUrl();
+    return JSON.parse(
+        decodeURIComponent(new URLSearchParams(url).get('clinicallist'))
+    );
+}

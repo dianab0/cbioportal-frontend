@@ -93,7 +93,7 @@ import {
 import {CoverageInformation, getCoverageInformation,} from 'shared/lib/GenePanelUtils';
 import {fetchHotspotsData} from 'shared/lib/CancerHotspotsUtils';
 import ResultsViewMutationMapperStore from './mutation/ResultsViewMutationMapperStore';
-import {getServerConfig} from 'config/config';
+import {getServerConfig, ServerConfigHelpers} from 'config/config';
 import _ from 'lodash';
 import {toSampleUuid} from '../../shared/lib/UuidUtils';
 import MutationDataCache from '../../shared/cache/MutationDataCache';
@@ -527,8 +527,7 @@ export class ResultsViewPageStore
 
     constructor(
         private appStore: AppStore,
-        public urlWrapper: ResultsViewURLWrapper,
-        private sessionServiceIsEnabled: boolean
+        public urlWrapper: ResultsViewURLWrapper
     ) {
         makeObservable(this);
         //labelMobxPromises(this);
@@ -546,7 +545,7 @@ export class ResultsViewPageStore
 
         this.pageUserSession = new PageUserSession<ResultPageSettings>(
             appStore,
-            sessionServiceIsEnabled
+            ServerConfigHelpers.sessionServiceIsEnabled()
         );
 
         this.pageUserSession.id = {

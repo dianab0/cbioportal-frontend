@@ -1,6 +1,6 @@
 import {
     PageSettingsData,
-    PageSettingsUpdate,
+    PageSettingsUpdateRequest,
 } from 'shared/api/session-service/sessionServiceModels';
 import {
     computed,
@@ -18,39 +18,12 @@ import { PageSettingsIdentifier } from './PageSettingsIdentifier';
 
 export class PageUserSession<T extends PageSettingsData>
     implements IPageUserSession<T> {
-    private _id: PageSettingsIdentifier;
-    private previousId: PageSettingsIdentifier | undefined;
 
-    @observable
-    public set id(id: PageSettingsIdentifier) {
-        this._id = id;
-    }
-
-    public get id(): PageSettingsIdentifier {
-        return this._id;
-    }
-
-    private _userSettings: T | undefined;
-
-    /**
-     * user settings as stored in user session
-     */
     public sessionUserSettings: T | undefined;
-
+    private _id: PageSettingsIdentifier;
+    private _userSettings: T | undefined;
+    private previousId: PageSettingsIdentifier | undefined;
     private reactionDisposers: IReactionDisposer[] = [];
-
-    @observable
-    public set userSettings(userSettings: T | undefined) {
-        this._userSettings = userSettings;
-    }
-
-    destroy() {
-        this.reactionDisposers.forEach(disposer => disposer());
-    }
-
-    public get userSettings(): T | undefined {
-        return this._userSettings;
-    }
 
     constructor(
         private appStore: AppStore,
@@ -68,14 +41,27 @@ export class PageUserSession<T extends PageSettingsData>
         );
     }
 
-    @computed
-    public get canSaveSession() {
-        return this.isLoggedIn && this.sessionServiceIsEnabled;
+    public get id(): PageSettingsIdentifier {
+        return this._id;
+    }
+
+    @observable
+    public set id(id: PageSettingsIdentifier) {
+        this._id = id;
+    }
+
+    public get userSettings(): T | undefined {
+        return this._userSettings;
+    }
+
+    @observable
+    public set userSettings(userSettings: T | undefined) {
+        this._userSettings = userSettings;
     }
 
     @computed
-    public get isLoggedIn() {
-        return this.appStore.isLoggedIn;
+    public get canSaveSession() {
+        return this.isLoggedIn && this.sessionServiceIsEnabled;
     }
 
     @computed
@@ -86,6 +72,24 @@ export class PageUserSession<T extends PageSettingsData>
         );
         const dirtyId = !isEqualJs(this._id, this.previousId);
         return dirtyUserSettings || dirtyId;
+    }
+
+    public async saveUserSession() {
+        if (!this.isDirty || !this.canSaveSession) {
+            return;
+        }
+        const update = {
+            ...this.id,
+            ...this.userSettings,
+        } as PageSettingsUpdateRequest;
+        await sessionServiceClient.updateUserSettings(update);
+        this.sessionUserSettings = this.userSettings;
+        this.previousId = this.id;
+    }
+
+    @computed
+    private get isLoggedIn() {
+        return this.appStore.isLoggedIn;
     }
 
     private async fetchSessionUserSettings() {
@@ -99,17 +103,8 @@ export class PageUserSession<T extends PageSettingsData>
         }
     }
 
-    public async saveUserSession() {
-        if (!this.isDirty || !this.canSaveSession) {
-            return;
-        }
-        const update = {
-            ...this.id,
-            ...this.userSettings,
-        } as PageSettingsUpdate;
-        await sessionServiceClient.updateUserSettings(update);
-        this.sessionUserSettings = this.userSettings;
-        this.previousId = this.id;
+    destroy() {
+        this.reactionDisposers.forEach(disposer => disposer());
     }
 }
 

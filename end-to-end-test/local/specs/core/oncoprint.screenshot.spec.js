@@ -10,6 +10,8 @@ var {
 var assertScreenShotMatch = require('../../../shared/lib/testUtils')
     .assertScreenShotMatch;
 
+var _ = require('lodash');
+
 const CBIOPORTAL_URL = process.env.CBIOPORTAL_URL.replace(/\/$/, '');
 
 const studyes0_oncoprintTabUrl =
@@ -172,7 +174,7 @@ describe('oncoprint', function() {
         it('still supports legacy "clinicallist" format', () => {
             const legacyFormatUrlParam = createOncoprintFromLegacyFormat();
 
-            changeNthTrack(1, "Sort a-Z");
+            changeNthTrack(1, 'Sort a-Z');
 
             // Legacy format should be converted to config json:
             const url = browser.getUrl();
@@ -189,9 +191,9 @@ describe('oncoprint', function() {
          * Note: to rerun test locally, first clean user session
          */
         it('stores config in user session when save button clicked', () => {
-            // Load page with a default config that differs from DEFAULT_TRACK_CONFIG:
+            // Load page with a default config that differs from SERVER_DEFAULT_TRACK_CONFIG:
             const customConfig = JSON.parse(
-                JSON.stringify(DEFAULT_TRACK_CONFIG)
+                JSON.stringify(SERVER_DEFAULT_TRACK_CONFIG)
             );
             customConfig.pop();
             browser.url(
@@ -223,7 +225,7 @@ describe('oncoprint', function() {
          */
         it('uses configuration stored in session when available', () => {
             const customConfig = JSON.parse(
-                JSON.stringify(DEFAULT_TRACK_CONFIG)
+                JSON.stringify(SERVER_DEFAULT_TRACK_CONFIG)
             );
             customConfig.pop();
             const urlConfig = getClinicallistConfigFromUrl(browser);
@@ -232,7 +234,7 @@ describe('oncoprint', function() {
 
         /**
          * Load page with a default config that differs
-         * from DEFAULT_TRACK_CONFIG and session config
+         * from SERVER_DEFAULT_TRACK_CONFIG and session config
          */
         it('prefers url when session and url configuration differ', () => {
             const customUrlConfig = _.cloneDeep(SERVER_DEFAULT_TRACK_CONFIG);
@@ -270,9 +272,7 @@ describe('oncoprint', function() {
             waitForOncoprint(ONCOPRINT_TIMEOUT);
             return legacyFormatQueryParam;
         }
-
     });
-
 });
 
 function getClinicallistConfigFromUrl(browser) {

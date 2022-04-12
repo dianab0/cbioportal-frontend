@@ -75,8 +75,7 @@ export function initStore(
 ) {
     const resultsViewPageStore = new ResultsViewPageStore(
         appStore,
-        urlWrapper,
-        ServerConfigHelpers.sessionServiceIsEnabled()
+        urlWrapper
     );
 
     setWindowVariable('resultsViewPageStore', resultsViewPageStore);

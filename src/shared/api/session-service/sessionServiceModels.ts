@@ -103,4 +103,4 @@ export type ResultPageSettings = {
 
 export type PageSettingsData = StudyPageSettings | ResultPageSettings;
 
-export type PageSettingsUpdate = PageSettingsIdentifier & PageSettingsData;
+export type PageSettingsUpdateRequest = PageSettingsIdentifier & PageSettingsData;

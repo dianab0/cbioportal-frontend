@@ -88,7 +88,7 @@ export interface IOncoprintControlsState
     onlyShowClinicalLegendForAlteredCases?: boolean;
     showOqlInLabels?: boolean;
     showMinimap: boolean;
-    canSaveToSession: boolean;
+    isSaveButtonEnabled: boolean;
     distinguishMutationType: boolean;
     distinguishGermlineMutations: boolean;
     sortByMutationType: boolean;
@@ -1207,8 +1207,8 @@ export default class OncoprintControls extends React.Component<
         return this.props.state.showMinimap;
     }
 
-    @computed get canSaveToSession() {
-        return this.props.state.canSaveToSession;
+    @computed get isSaveButtonEnabled() {
+        return this.props.state.isSaveButtonEnabled;
     }
 
     private get minimapButton() {
@@ -1243,7 +1243,8 @@ export default class OncoprintControls extends React.Component<
                     }
                 >
                     <Button
-                        disabled={!this.canSaveToSession}
+                        id="save-oncoprint-config-to-session"
+                        disabled={!this.isSaveButtonEnabled}
                         onClick={this.saveToSession}
                     >
                         <FontAwesome name="cloud-upload" size="lg" />

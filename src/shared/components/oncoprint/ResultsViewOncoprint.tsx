@@ -608,7 +608,7 @@ export default class ResultsViewOncoprint extends React.Component<
                     return self.horzZoom;
                 }
             },
-            get canSaveToSession() {
+            get isSaveButtonEnabled() {
                 return self.props.store.pageUserSession.isDirty;
             },
         });

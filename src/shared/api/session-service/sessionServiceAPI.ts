@@ -4,8 +4,7 @@ import {
     CustomChart,
     CustomChartData,
     PageSettingsData,
-    PageSettingsUpdate,
-    ResultPageSettings,
+    PageSettingsUpdateRequest,
     StudyPageSettings,
     VirtualStudy,
 } from './sessionServiceModels';
@@ -146,7 +145,7 @@ export default class sessionServiceAPI {
         );
     }
 
-    updateUserSettings(data: PageSettingsUpdate) {
+    updateUserSettings(data: PageSettingsUpdateRequest) {
         return (
             request
                 .post(this.getUserSettingUrl())

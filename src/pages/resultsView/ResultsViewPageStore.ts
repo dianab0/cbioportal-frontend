@@ -891,30 +891,24 @@ export class ResultsViewPageStore
         },
     });
 
-
     /**
      * The oncoprint can have tracks which indicate comparison group membership per sample.
      *  We want to know which comparison groups are referenced in these tracks, if any
      *  are currently visible.
      */
     @computed.struct get comparisonGroupsReferencedInURL() {
-
         // Get selected clinical attribute tracks:
-        const inComparisonGroupTracks = this.urlWrapper.oncoprintSelectedClinicalTrackIds
-            .filter((clinicalAttributeId: string) =>
+        const inComparisonGroupTracks = this.urlWrapper.oncoprintSelectedClinicalTrackIds.filter(
+            (clinicalAttributeId: string) =>
                 clinicalAttributeIsINCOMPARISONGROUP({
                     clinicalAttributeId,
                 })
-            );
+        );
 
         // Convert track ids to group ids:
-        return inComparisonGroupTracks
-            .map((clinicalAttributeId: string) =>
-                convertComparisonGroupClinicalAttribute(
-                    clinicalAttributeId,
-                    false
-                )
-            );
+        return inComparisonGroupTracks.map((clinicalAttributeId: string) =>
+            convertComparisonGroupClinicalAttribute(clinicalAttributeId, false)
+        );
     }
 
     readonly savedComparisonGroupsForStudies = remoteData<Group[]>({
@@ -923,11 +917,15 @@ export class ResultsViewPageStore
             let ret: Group[] = [];
             if (this.appStore.isLoggedIn) {
                 try {
-                    const queriedStudyIds = this.queriedStudies.result!.map(x => x.studyId);
-                    const groups = await comparisonClient.getGroupsForStudies(queriedStudyIds);
+                    const queriedStudyIds = this.queriedStudies.result!.map(
+                        x => x.studyId
+                    );
+                    const groups = await comparisonClient.getGroupsForStudies(
+                        queriedStudyIds
+                    );
                     ret = ret.concat(groups);
                 } catch (e) {
-                    console.error(`Could not get groups for studies: ${this.queriedStudies}`, e);
+                    // fail silently
                 }
             }
             // add any groups that are referenced in URL
@@ -1109,7 +1107,7 @@ export class ResultsViewPageStore
                 ...this.clinicalAttributes_comparisonGroupMembership.result!,
                 ...this.clinicalAttributes_customCharts.result!,
             ];
-        }
+        },
     });
 
     // TODO: Should include all clinical attributes, not just server attributes

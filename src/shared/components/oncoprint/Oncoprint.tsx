@@ -20,7 +20,7 @@ import {
 } from '../../../pages/resultsView/ResultsViewPageStore';
 import './styles.scss';
 import { ShapeParams } from 'oncoprintjs/dist/js/oncoprintshape';
-import {SpecialAttribute} from "shared/cache/ClinicalDataCache";
+import { SpecialAttribute } from 'shared/cache/ClinicalDataCache';
 
 export type CategoricalTrackDatum = {
     entity: string;
@@ -85,13 +85,16 @@ export class ClinicalTrackConfig {
     public sortOrder: string | null = null;
     public gapOn: boolean | null = null;
 }
-export type ClinicalTrackConfigChange = {
-    stableId?: string,
-    sortOrder?: string,
-    gapOn?: boolean,
-}
 
-export type ClinicalTrackConfigMap = {[clinicalAttribute: string]: ClinicalTrackConfig };
+export type ClinicalTrackConfigChange = {
+    stableId?: string;
+    sortOrder?: string;
+    gapOn?: boolean;
+};
+
+export type ClinicalTrackConfigMap = {
+    [clinicalAttribute: string]: ClinicalTrackConfig;
+};
 
 export interface IBaseHeatmapTrackDatum {
     profile_data: number | null;
@@ -239,7 +242,7 @@ export const GENETIC_TRACK_GROUP_INDEX = 1;
 export const CLINICAL_TRACK_GROUP_INDEX = 0;
 
 export interface IOncoprintProps {
-    oncoprintRef?: (oncoprint: OncoprintJS) => void;
+    oncoprintJsRef?: (oncoprint: OncoprintJS) => void;
 
     clinicalTracks: ClinicalTrackSpec[];
     geneticTracks: GeneticTrackSpec[];
@@ -302,7 +305,6 @@ export interface IOncoprintProps {
 
 @observer
 export default class Oncoprint extends React.Component<IOncoprintProps, {}> {
-
     public oncoprint: OncoprintJS | undefined;
 
     private div: HTMLDivElement;
@@ -369,8 +371,8 @@ export default class Oncoprint extends React.Component<IOncoprintProps, {}> {
                 CLINICAL_TRACK_GROUP_INDEX,
             ]);
             (window as any).frontendOnc = this.oncoprint;
-            if (props.oncoprintRef) {
-                props.oncoprintRef(this.oncoprint);
+            if (props.oncoprintJsRef) {
+                props.oncoprintJsRef(this.oncoprint);
             }
         }
         if (!this.oncoprint.webgl_unavailable) {

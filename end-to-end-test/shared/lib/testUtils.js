@@ -8,11 +8,13 @@ module.exports = {
             assert(result[0].isWithinMisMatchTolerance, message);
         }
     },
-    getNthTrackOptionsElements(n) {
+    // TODO: move to specUtils
+    getNthOncoprintTrackOptionsElements(n) {
         // n is one-indexed
 
         const button_selector =
-            '#oncoprintDiv .oncoprintjs__track_options__toggle_btn_img.nth-' + n;
+            '#oncoprintDiv .oncoprintjs__track_options__toggle_btn_img.nth-' +
+            n;
         const dropdown_selector =
             '#oncoprintDiv .oncoprintjs__track_options__dropdown.nth-' + n;
 
@@ -22,6 +24,5 @@ module.exports = {
             dropdown: $(dropdown_selector),
             dropdown_selector,
         };
-    }
+    },
 };
-

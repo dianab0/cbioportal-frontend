@@ -287,7 +287,7 @@ function backwardsCompatibilityMapping(oldParams: any) {
     return newParams;
 }
 
-const allTracksDeleted = 'null';
+const ALL_TRACKS_DELETED = 'null';
 
 export default class ResultsViewURLWrapper
     extends URLWrapper<ResultsViewURLQuery>
@@ -343,7 +343,7 @@ export default class ResultsViewURLWrapper
         if (clinicalTracks.length) {
             return { clinicallist: JSON.stringify(clinicalTracks) };
         } else {
-            return { clinicallist: allTracksDeleted };
+            return { clinicallist: ALL_TRACKS_DELETED };
         }
     }
 
@@ -356,7 +356,7 @@ export default class ResultsViewURLWrapper
     public get oncoprintSelectedClinicalTracks(): ClinicalTrackConfig[] {
         if (
             !this.query.clinicallist ||
-            this.query.clinicallist === allTracksDeleted
+            this.query.clinicallist === ALL_TRACKS_DELETED
         ) {
             return [];
         }
@@ -373,7 +373,7 @@ export default class ResultsViewURLWrapper
      * Check if clinical tracks are initialized
      * See also: {@link convertClinicalTracksToUrlParam}
      */
-    @computed public get clinicalTracksInitialized(): boolean {
+    @computed public get hasClinicalTracksConfig(): boolean {
         return !!this.query.clinicallist;
     }
 

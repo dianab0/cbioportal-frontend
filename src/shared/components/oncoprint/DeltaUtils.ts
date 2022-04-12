@@ -28,7 +28,7 @@ import {
     getGeneticTrackSortComparator,
     heatmapTrackSortComparator,
     categoricalTrackSortComparator,
-    getClinicalTrackSortDirection
+    getClinicalTrackSortDirection,
 } from './SortUtils';
 import {
     linebreakGenesetId,
@@ -1266,9 +1266,8 @@ function transitionClinicalTrack(
                 delete getTrackSpecKeyToTrackId()[nextSpec.key];
             },
             onClickRemoveInTrackMenu: () => {
-                if(nextProps.onDeleteClinicalTrack) {
+                nextProps.onDeleteClinicalTrack &&
                     nextProps.onDeleteClinicalTrack(nextSpec.key);
-                }
             },
             sort_direction_changeable: true,
             tooltipFn: makeClinicalTrackTooltip(

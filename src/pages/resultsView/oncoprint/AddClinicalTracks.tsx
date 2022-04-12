@@ -6,15 +6,13 @@ import { action, computed, observable, makeObservable } from 'mobx';
 import { remoteData } from 'cbioportal-frontend-commons';
 import autobind from 'autobind-decorator';
 import { ResultsViewPageStore } from '../ResultsViewPageStore';
-import { SpecialAttribute } from '../../../shared/cache/ClinicalDataCache';
 import _ from 'lodash';
 import { MakeMobxView } from '../../../shared/components/MobxView';
 import LoadingIndicator from '../../../shared/components/loadingIndicator/LoadingIndicator';
 import { toggleIncluded } from '../../../shared/lib/ArrayUtils';
 import MobxPromise from 'mobxpromise';
 import { ChartDataCountSet } from 'pages/studyView/StudyViewUtils';
-import { getServerConfig, ServerConfigHelpers } from 'config/config';
-import {ClinicalTrackConfig} from "shared/components/oncoprint/Oncoprint";
+import { ClinicalTrackConfig } from 'shared/components/oncoprint/Oncoprint';
 
 export interface IAddClinicalTrackProps {
     store: ResultsViewPageStore;
@@ -26,7 +24,7 @@ export interface IAddClinicalTrackProps {
     getSelectedClinicalAttributes: () => ClinicalTrackConfig[];
 
     onChangeSelectedClinicalTracks: (
-        tracks: ClinicalTrackConfig[]
+        trackConfigs: ClinicalTrackConfig[]
     ) => void;
     clinicalTrackOptionsPromise: MobxPromise<{
         clinical: {
@@ -66,7 +64,6 @@ export default class AddClinicalTracks extends React.Component<
         super(props);
 
         makeObservable(this);
-
     }
     @observable open = false;
     @observable tabId = Tab.CLINICAL;
@@ -101,13 +98,15 @@ export default class AddClinicalTracks extends React.Component<
         const toggled = toggleIncluded(
             new ClinicalTrackConfig(clinicalAttributeId),
             this.props.getSelectedClinicalAttributes(),
-            (track) => track.stableId === clinicalAttributeId
+            track => track.stableId === clinicalAttributeId
         );
         this.props.onChangeSelectedClinicalTracks(toggled);
     }
 
     @computed get selectedClinicalAttributeIds() {
-        return _.keyBy(this.props.getSelectedClinicalAttributes().map(a => a.stableId));
+        return _.keyBy(
+            this.props.getSelectedClinicalAttributes().map(a => a.stableId)
+        );
     }
 
     readonly options = remoteData({

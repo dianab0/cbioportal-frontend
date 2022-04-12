@@ -431,7 +431,7 @@ export default class Oncoprinter extends React.Component<
                             {this.alterationInfo}
                             <Oncoprint
                                 key={this.props.store.submitCount}
-                                oncoprintRef={this.oncoprintRef}
+                                oncoprintJsRef={this.oncoprintRef}
                                 clinicalTracks={this.props.store.clinicalTracks}
                                 geneticTracks={
                                     this.props.store.geneticTracks.result

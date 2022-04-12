@@ -89,7 +89,7 @@ import {
 import { buildCBioPortalPageUrl } from '../../api/urls';
 import '../../../globalStyles/oncoprintStyles.scss';
 import { GenericAssayTrackInfo } from 'pages/studyView/addChartButton/genericAssaySelection/GenericAssaySelection';
-import {toDirectionEnum, toDirectionString} from './SortUtils';
+import { toDirectionString } from './SortUtils';
 
 interface IResultsViewOncoprintProps {
     divId: string;
@@ -386,11 +386,11 @@ export default class ResultsViewOncoprint extends React.Component<
     public controlsHandlers: IOncoprintControlsHandlers;
     private controlsState: IOncoprintControlsState;
 
-    @observable.ref private oncoprint: OncoprintJS;
+    @observable.ref private oncoprintJs: OncoprintJS;
     private oncoprintComponent: Oncoprint | null = null;
 
     @autobind
-    private oncoprintComponentRef(oncoprint: Oncoprint | null) {
+    private oncoprintRef(oncoprint: Oncoprint | null) {
         this.oncoprintComponent = oncoprint;
     }
 
@@ -410,7 +410,7 @@ export default class ResultsViewOncoprint extends React.Component<
         );
         this.onDeleteClinicalTrack = this.onDeleteClinicalTrack.bind(this);
         this.onMinimapClose = this.onMinimapClose.bind(this);
-        this.oncoprintRef = this.oncoprintRef.bind(this);
+        this.oncoprintJsRef = this.oncoprintJsRef.bind(this);
         this.toggleColumnMode = this.toggleColumnMode.bind(this);
         this.onTrackSortDirectionChange = this.onTrackSortDirectionChange.bind(
             this
@@ -615,12 +615,12 @@ export default class ResultsViewOncoprint extends React.Component<
                 }
             },
         });
-        if(!this.urlWrapper.clinicalTracksInitialized) {
-            this.initializeClinicalTracks();
+        if (!this.urlWrapper.hasClinicalTracksConfig) {
+            this.initializeClinicalTracksFromServerConfig();
         }
     }
 
-    private initializeClinicalTracks(): void {
+    private initializeClinicalTracksFromServerConfig(): void {
         const defaultClinicalTracks = getServerConfig()
             .oncoprint_clinical_tracks_show_by_default;
         if (defaultClinicalTracks) {
@@ -841,14 +841,14 @@ export default class ResultsViewOncoprint extends React.Component<
                     case 'pdf':
                         svgToPdfDownload(
                             'oncoprint.pdf',
-                            this.oncoprint.toSVG(false)
+                            this.oncoprintJs.toSVG(false)
                         );
                         // if (!pdfDownload("oncoprint.pdf", this.oncoprint.toSVG(true))) {
                         //     alert("Oncoprint too big to download as PDF - please download as SVG.");
                         // }
                         break;
                     case 'png':
-                        const img = this.oncoprint.toCanvas(
+                        const img = this.oncoprintJs.toCanvas(
                             (canvas, truncated) => {
                                 canvas.toBlob(blob => {
                                     if (truncated) {
@@ -867,7 +867,7 @@ export default class ResultsViewOncoprint extends React.Component<
                     case 'svg':
                         fileDownload(
                             new XMLSerializer().serializeToString(
-                                this.oncoprint.toSVG(false)
+                                this.oncoprintJs.toSVG(false)
                             ),
                             'oncoprint.svg'
                         );
@@ -893,7 +893,7 @@ export default class ResultsViewOncoprint extends React.Component<
                                     OncoprintAnalysisCaseType.SAMPLE
                                         ? sampleKeyToSample
                                         : patientKeyToPatient;
-                                const caseIds = this.oncoprint
+                                const caseIds = this.oncoprintJs
                                     .getIdOrder()
                                     .map(
                                         this.oncoprintAnalysisCaseType ===
@@ -932,7 +932,7 @@ export default class ResultsViewOncoprint extends React.Component<
                                     this.heatmapTracks.result,
                                     this.genericAssayHeatmapTracks.result,
                                     this.genesetHeatmapTracks.result,
-                                    this.oncoprint.getIdOrder(),
+                                    this.oncoprintJs.getIdOrder(),
                                     this.oncoprintAnalysisCaseType ===
                                         OncoprintAnalysisCaseType.SAMPLE
                                         ? (key: string) =>
@@ -1030,16 +1030,16 @@ export default class ResultsViewOncoprint extends React.Component<
                 }
             },
             onSetHorzZoom: (z: number) => {
-                this.oncoprint.setHorzZoomCentered(z);
+                this.oncoprintJs.setHorzZoomCentered(z);
             },
             onClickZoomIn: () => {
-                this.oncoprint.setHorzZoomCentered(
-                    this.oncoprint.getHorzZoom() / 0.7
+                this.oncoprintJs.setHorzZoomCentered(
+                    this.oncoprintJs.getHorzZoom() / 0.7
                 );
             },
             onClickZoomOut: () => {
-                this.oncoprint.setHorzZoomCentered(
-                    this.oncoprint.getHorzZoom() * 0.7
+                this.oncoprintJs.setHorzZoomCentered(
+                    this.oncoprintJs.getHorzZoom() * 0.7
                 );
             },
         };
@@ -1191,20 +1191,20 @@ export default class ResultsViewOncoprint extends React.Component<
         }
     }
 
-    private oncoprintRef(oncoprint: OncoprintJS) {
-        this.oncoprint = oncoprint;
+    private oncoprintJsRef(oncoprint: OncoprintJS) {
+        this.oncoprintJs = oncoprint;
         if (this.props.addOnBecomeVisibleListener) {
             this.props.addOnBecomeVisibleListener(() =>
-                this.oncoprint.triggerPendingResizeAndOrganize(
+                this.oncoprintJs.triggerPendingResizeAndOrganize(
                     this.onReleaseRendering
                 )
             );
         }
 
-        this.oncoprint.onHorzZoom(z => (this.horzZoom = z));
-        this.horzZoom = this.oncoprint.getHorzZoom();
+        this.oncoprintJs.onHorzZoom(z => (this.horzZoom = z));
+        this.horzZoom = this.oncoprintJs.getHorzZoom();
         onMobxPromise(this.alteredKeys, (alteredUids: string[]) => {
-            this.oncoprint.setHorzZoomToFit(alteredUids);
+            this.oncoprintJs.setHorzZoomToFit(alteredUids);
         });
     }
 
@@ -1247,9 +1247,7 @@ export default class ResultsViewOncoprint extends React.Component<
         clinicalAttributes: ClinicalTrackConfig[]
     ) {
         this.urlWrapper.updateURL(
-            this.urlWrapper.convertClinicalTracksToUrlParam(
-                clinicalAttributes
-            )
+            this.urlWrapper.convertClinicalTracksToUrlParam(clinicalAttributes)
         );
     }
 
@@ -1266,9 +1264,7 @@ export default class ResultsViewOncoprint extends React.Component<
                     this.clinicalTrackKeyToAttributeId(clinicalTrackKey)
             ) as ClinicalTrackConfigMap;
             this.urlWrapper.updateURL(
-                this.urlWrapper.convertClinicalTracksToUrlParam(
-                    _.values(json)
-                )
+                this.urlWrapper.convertClinicalTracksToUrlParam(_.values(json))
             );
         }
     }
@@ -1291,18 +1287,22 @@ export default class ResultsViewOncoprint extends React.Component<
      */
     @action.bound
     private onTrackGapChange(trackId: TrackId, gapOn: boolean) {
-        this.handleClinicalTrackChange(trackId, {gapOn});
+        this.handleClinicalTrackChange(trackId, { gapOn });
     }
 
-    private handleClinicalTrackChange(trackId: number, change: ClinicalTrackConfigChange) {
-        if (!this.oncoprintComponent || !this.oncoprint) {
+    private handleClinicalTrackChange(
+        trackId: number,
+        change: ClinicalTrackConfigChange
+    ) {
+        if (!this.oncoprintComponent || !this.oncoprintJs) {
             return;
         }
         const clinicalTracks = _.clone(this.selectedClinicalTrackConfig);
         const stableId = this.clinicalTrackKeyToAttributeId(
             this.oncoprintComponent.getTrackSpecKey(trackId) || ''
         );
-        const isClinicalTrack = stableId && _.keys(clinicalTracks).some(ctg => ctg === stableId);
+        const isClinicalTrack =
+            stableId && _.keys(clinicalTracks).some(ctg => ctg === stableId);
         if (!isClinicalTrack) {
             return;
         }
@@ -1317,8 +1317,8 @@ export default class ResultsViewOncoprint extends React.Component<
 
     @action.bound
     public clearSortDirectionsAndSortByData() {
-        if (this.oncoprint) {
-            this.oncoprint.resetSortableTracksSortDirection();
+        if (this.oncoprintJs) {
+            this.oncoprintJs.resetSortableTracksSortDirection();
             this.sortByData();
         }
     }
@@ -1518,8 +1518,8 @@ export default class ResultsViewOncoprint extends React.Component<
 
     @action.bound
     private clusterHeatmapByIndex(index: TrackGroupIndex) {
-        if (this.oncoprint) {
-            this.oncoprint.resetSortableTracksSortDirection();
+        if (this.oncoprintJs) {
+            this.oncoprintJs.resetSortableTracksSortDirection();
         }
 
         let molecularProfileId: string | undefined;
@@ -1685,8 +1685,8 @@ export default class ResultsViewOncoprint extends React.Component<
     @autobind
     private getControls() {
         if (
-            this.oncoprint &&
-            !this.oncoprint.webgl_unavailable &&
+            this.oncoprintJs &&
+            !this.oncoprintJs.webgl_unavailable &&
             this.props.store.molecularProfileIdToMolecularProfile.result
         ) {
             return (
@@ -1853,8 +1853,8 @@ export default class ResultsViewOncoprint extends React.Component<
                     <div style={{ position: 'relative', marginTop: 15 }}>
                         <div>
                             <Oncoprint
-                                ref={this.oncoprintComponentRef}
-                                oncoprintRef={this.oncoprintRef}
+                                ref={this.oncoprintRef}
+                                oncoprintJsRef={this.oncoprintJsRef}
                                 clinicalTracks={this.clinicalTracks.result}
                                 geneticTracks={this.geneticTracks.result}
                                 genesetHeatmapTracks={

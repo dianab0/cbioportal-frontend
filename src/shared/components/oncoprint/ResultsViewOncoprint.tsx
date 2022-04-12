@@ -386,13 +386,8 @@ export default class ResultsViewOncoprint extends React.Component<
     public controlsHandlers: IOncoprintControlsHandlers;
     private controlsState: IOncoprintControlsState;
 
+    @observable.ref private oncoprint: Oncoprint;
     @observable.ref private oncoprintJs: OncoprintJS;
-    private oncoprintComponent: Oncoprint | null = null;
-
-    @autobind
-    private oncoprintRef(oncoprint: Oncoprint | null) {
-        this.oncoprintComponent = oncoprint;
-    }
 
     private urlParamsReaction: IReactionDisposer;
 
@@ -410,6 +405,7 @@ export default class ResultsViewOncoprint extends React.Component<
         );
         this.onDeleteClinicalTrack = this.onDeleteClinicalTrack.bind(this);
         this.onMinimapClose = this.onMinimapClose.bind(this);
+        this.oncoprintRef = this.oncoprintRef.bind(this);
         this.oncoprintJsRef = this.oncoprintJsRef.bind(this);
         this.toggleColumnMode = this.toggleColumnMode.bind(this);
         this.onTrackSortDirectionChange = this.onTrackSortDirectionChange.bind(
@@ -1191,6 +1187,10 @@ export default class ResultsViewOncoprint extends React.Component<
         }
     }
 
+    private oncoprintRef(oncoprint: Oncoprint) {
+        this.oncoprint = oncoprint;
+    }
+
     private oncoprintJsRef(oncoprint: OncoprintJS) {
         this.oncoprintJs = oncoprint;
         if (this.props.addOnBecomeVisibleListener) {
@@ -1294,12 +1294,12 @@ export default class ResultsViewOncoprint extends React.Component<
         trackId: number,
         change: ClinicalTrackConfigChange
     ) {
-        if (!this.oncoprintComponent || !this.oncoprintJs) {
+        if (!this.oncoprint || !this.oncoprintJs) {
             return;
         }
         const clinicalTracks = _.clone(this.selectedClinicalTrackConfig);
         const stableId = this.clinicalTrackKeyToAttributeId(
-            this.oncoprintComponent.getTrackSpecKey(trackId) || ''
+            this.oncoprint.getTrackSpecKey(trackId) || ''
         );
         const isClinicalTrack =
             stableId && _.keys(clinicalTracks).some(ctg => ctg === stableId);

@@ -6,7 +6,7 @@ var {
 } = require('../../../shared/specUtils');
 var {
     getNthOncoprintTrackOptionsElements,
-} = require('../../../shared/lib/testUtils');
+} = require('../../../shared/specUtils');
 var assertScreenShotMatch = require('../../../shared/lib/testUtils')
     .assertScreenShotMatch;
 
@@ -27,6 +27,23 @@ const studyes0_oncoprintTabUrl =
     '&genetic_profile_ids_PROFILE_MUTATION_EXTENDED=study_es_0_mutations' +
     '&profileFilter=0' +
     '&tab_index=tab_visualize';
+
+const genericArrayUrl =
+    CBIOPORTAL_URL +
+    '/results/oncoprint' +
+    '?genetic_profile_ids_PROFILE_MUTATION_EXTENDED=lgg_ucsf_2014_test_generic_assay_mutations' +
+    '&cancer_study_list=lgg_ucsf_2014_test_generic_assay' +
+    '&Z_SCORE_THRESHOLD=2.0' +
+    '&RPPA_SCORE_THRESHOLD=2.0' +
+    '&data_priority=0' +
+    '&profileFilter=0' +
+    '&case_set_id=lgg_ucsf_2014_test_generic_assay_sequenced' +
+    '&gene_list=IDH1' +
+    '&geneset_list=%20' +
+    '&tab_index=tab_visualize' +
+    '&Action=Submit' +
+    '&show_samples=true' +
+    '&generic_assay_groups=lgg_ucsf_2014_test_generic_assay_mutational_signature_binary_v2%2Cmutational_signature_binary_2%2Cmutational_signature_binary_1%3Blgg_ucsf_2014_test_generic_assay_mutational_signature_category_v2%2Cmutational_signature_category_6%2Cmutational_signature_category_8%2Cmutational_signature_category_9';
 
 const SERVER_DEFAULT_TRACK_CONFIG = [
     {
@@ -65,22 +82,17 @@ const MANUAL_TRACK_CONFIG = [
 ];
 
 const ONCOPRINT_TIMEOUT = 60000;
-
-// TODO: complexe stappen in functies omzetten
-
 describe('oncoprint', function() {
     describe('generic assay categorical tracks', () => {
         it('shows binary and multiple category tracks', () => {
-            // TODO: naar boven verhuizen
-            const url = `${CBIOPORTAL_URL}/results/oncoprint?genetic_profile_ids_PROFILE_MUTATION_EXTENDED=lgg_ucsf_2014_test_generic_assay_mutations&cancer_study_list=lgg_ucsf_2014_test_generic_assay&Z_SCORE_THRESHOLD=2.0&RPPA_SCORE_THRESHOLD=2.0&data_priority=0&profileFilter=0&case_set_id=lgg_ucsf_2014_test_generic_assay_sequenced&gene_list=IDH1&geneset_list=%20&tab_index=tab_visualize&Action=Submit&show_samples=true&generic_assay_groups=lgg_ucsf_2014_test_generic_assay_mutational_signature_binary_v2%2Cmutational_signature_binary_2%2Cmutational_signature_binary_1%3Blgg_ucsf_2014_test_generic_assay_mutational_signature_category_v2%2Cmutational_signature_category_6%2Cmutational_signature_category_8%2Cmutational_signature_category_9`;
-            goToUrlAndSetLocalStorage(url, true);
+            goToUrlAndSetLocalStorage(genericArrayUrl, true);
             waitForOncoprint(ONCOPRINT_TIMEOUT);
             const res = checkOncoprintElement();
             assertScreenShotMatch(res);
         });
     });
 
-    describe('clinical tracks', () => {
+    describe.only('clinical tracks', () => {
         beforeEach(() => {
             goToUrlAndSetLocalStorageWithProperty(
                 studyes0_oncoprintTabUrl,
@@ -108,13 +120,7 @@ describe('oncoprint', function() {
         });
 
         it('updates url when changing gaps', () => {
-            const firstTrack = getNthOncoprintTrackOptionsElements(1);
-            $(firstTrack.button_selector).click();
-            $(firstTrack.dropdown_selector).waitForDisplayed({
-                timeout: 1000,
-            });
-            $("li=Don't show gaps").click();
-            waitForOncoprint(2000);
+            changeNthTrack(1, "Don't show gaps");
 
             const url = browser.getUrl();
             const clinicalTracksUrlParam = new URLSearchParams(url).get(
@@ -131,7 +137,7 @@ describe('oncoprint', function() {
         });
 
         it('updates url when sorting', () => {
-            sortFirstTrackDesc();
+            changeNthTrack(1, 'Sort Z-a');
 
             const url = browser.getUrl();
             const clinicalTracksUrlParam = new URLSearchParams(url).get(
@@ -163,22 +169,9 @@ describe('oncoprint', function() {
         });
 
         it('still supports legacy "clinicallist" format', () => {
-            // Create oncoprint from legacy format:
-            const legacyFormat = MANUAL_TRACK_CONFIG.map(
-                track => track.stableId
-            ).join(',');
-            const legacyUrl = `${studyes0_oncoprintTabUrl}&clinicallist=${legacyFormat}`;
-            goToUrlAndSetLocalStorage(legacyUrl, false);
-            waitForOncoprint(ONCOPRINT_TIMEOUT);
+            const legacyFormatUrlParam = createOncoprintFromLegacyFormat();
 
-            // Modify oncoprint with legacy format:
-            const firstTrack = getNthOncoprintTrackOptionsElements(1);
-            $(firstTrack.button_selector).click();
-            $(firstTrack.dropdown_selector).waitForDisplayed({
-                timeout: 1000,
-            });
-            $('li=Sort a-Z').click();
-            waitForOncoprint(2000);
+            changeNthTrack(1, "Sort a-Z");
 
             // Legacy format should be converted to config json:
             const url = browser.getUrl();
@@ -186,20 +179,35 @@ describe('oncoprint', function() {
                 decodeURIComponent(new URLSearchParams(url).get('clinicallist'))
             );
             const stableIds = clinicalList.map(tracks => tracks.stableId);
-            expect(stableIds.join(',')).toEqual(legacyFormat);
+            expect(stableIds.join(',')).toEqual(legacyFormatUrlParam);
             expect(clinicalList[0].sortOrder).toEqual('ASC');
             const res = checkOncoprintElement('.oncoprintContainer');
             assertScreenShotMatch(res);
         });
 
-        function sortFirstTrackDesc() {
+        function changeNthTrack(track, menuOptionButtonText) {
             const firstTrack = getNthOncoprintTrackOptionsElements(1);
             $(firstTrack.button_selector).click();
             $(firstTrack.dropdown_selector).waitForDisplayed({
                 timeout: 1000,
             });
-            $('li=Sort Z-a').click();
+            $(`li=${menuOptionButtonText}`).click();
             waitForOncoprint(2000);
         }
+
+        /**
+         * @returns {string} legacy format
+         */
+        function createOncoprintFromLegacyFormat() {
+            const legacyFormatQueryParam = MANUAL_TRACK_CONFIG.map(
+                track => track.stableId
+            ).join(',');
+            const legacyUrl = `${studyes0_oncoprintTabUrl}&clinicallist=${legacyFormatQueryParam}`;
+            goToUrlAndSetLocalStorage(legacyUrl, false);
+            waitForOncoprint(ONCOPRINT_TIMEOUT);
+            return legacyFormatQueryParam;
+        }
+
     });
+
 });

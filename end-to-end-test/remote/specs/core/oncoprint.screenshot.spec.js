@@ -1,6 +1,6 @@
 const {
     getNthOncoprintTrackOptionsElements,
-} = require('../../../shared/lib/testUtils');
+} = require('../../../shared/specUtils');
 var waitForOncoprint = require('../../../shared/specUtils').waitForOncoprint;
 var goToUrlAndSetLocalStorage = require('../../../shared/specUtils')
     .goToUrlAndSetLocalStorage;
